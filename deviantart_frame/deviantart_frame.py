@@ -9,7 +9,7 @@ without cutting any of it off, on a black background).
 The pictures are kept in PICTURE_FOLDER (a "pictures" folder next to this script, unless
 it is changed below), in two folders inside it:
 
-    pictures/deviantart 20 new pictures downloaded every day, keeping the newest 100;
+    pictures/deviantart 40 new pictures downloaded every day, keeping the newest 400;
                         which ones (artists, topics, tags, mature or not) is chosen
                         in deviantart_choices.txt
                         (see deviantart_library.py, which also says how to get the

@@ -7,8 +7,9 @@ the Pi's GPIO pins or the arrow keys:
 - **LCARS**: an ambient screen that sits there looking busy. It shows a clock, the weather
   forecast, your next Google Calendar events, the Pi's CPU and memory use, and a radar of the
   aircraft near you from your own ADS-B receiver.
-- **DeviantArt frame**: a picture frame. Every day it downloads 30 new landscape pictures
-  from DeviantArt, chosen from artists, topics and tags you name, and shows them one after
+- **DeviantArt frame**: a picture frame. Every day it downloads 40 new landscape pictures
+  from DeviantArt (10 of that day's Daily Deviations, and 30 chosen from artists, topics and
+  tags you name), and shows them one after
   another, each fading into the next, with the title and artist in the corner.
 - **Biomonitor**: the sickbay biomonitor, with a row of dials whose pointers drift around
   their normal ranges, and lamps that flash with the breathing and the heartbeat (which you
@@ -93,8 +94,8 @@ marked on the radar (Manchester) is set at the top of `lcars_frame/lcars_screen.
    whether mature pictures are allowed. With none named, it shows the Daily Deviations and the
    most popular pictures.
 
-It keeps the newest 400 pictures in `deviantart_frame/pictures/deviantart/` (`PICTURE_COUNT`
-and `KEEP_COUNT` in `deviantart_frame/deviantart_library.py`). Your own pictures can go in
+It keeps the newest 400 pictures in `deviantart_frame/pictures/deviantart/` (`DAILY_COUNT`,
+`PICTURE_COUNT` and `KEEP_COUNT` in `deviantart_frame/deviantart_library.py`). Your own pictures can go in
 `deviantart_frame/pictures/my_own/`, and are mixed in with them (unless `OWN_PICTURES` in
 `deviantart_frame/deviantart_frame.py` is set to `False`).
 

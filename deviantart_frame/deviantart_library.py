@@ -1,8 +1,10 @@
 """
 Background picture downloader for the DeviantArt frame.
 
-Once a day it fetches PICTURE_COUNT new pictures from DeviantArt: landscape (wider than
-tall), big enough, and never one it has fetched before. Which pictures, and whether mature
+Once a day it fetches new pictures from DeviantArt: landscape (wider than tall), big
+enough, and never one it has fetched before. DAILY_COUNT of them are Daily Deviations (the
+pictures DeviantArt's staff pick each day), and PICTURE_COUNT more are your choices.
+Which pictures, and whether mature
 ones are allowed, is chosen in deviantart_choices.txt next to this script (it says how):
 the galleries of artists you name, topics (DeviantArt's categories, such as digital-art or
 photography) and tags. Pictures from all of those are mixed together. If they don't give
@@ -56,12 +58,14 @@ KEY_FILE = os.path.join(HERE, "deviantart_key.txt")
 CHOICES_FILE = os.path.join(HERE, "deviantart_choices.txt")
 SEEN_FILE = "seen.json"         # the pictures fetched before, kept in the folder given
 
-PICTURE_COUNT = 30              # how many new pictures to fetch each day...
+PICTURE_COUNT = 30              # how many new pictures to fetch each day from the choices...
+DAILY_COUNT = 10                # ...and how many of the Daily Deviations as well...
 KEEP_COUNT = 400                # ...and how many to keep: the oldest beyond this are deleted
 MAX_ZOOM = 1.6                  # pictures that would have to be zoomed more than this to fill the screen
                                 # are low resolution, and passed over (1.2: at least 1600 x 900)
 MAX_ORIGINAL_BYTES = 25_000_000 # a downloadable original bigger than this is too slow to show
-DAILY_DAYS = 3                  # Daily Deviations: today's and this many days before...
+DAILY_DAYS = 7                  # Daily Deviations: today's and this many days before (enough
+                                # to find DAILY_COUNT that are wide and big enough)...
 POPULAR_TIMERANGE = "1week"     # ...then the most popular of this long ("1week", "1month", "alltime")
 PAGE_SIZE = 24                  # pictures are asked for this many at a time (24 is the most allowed)...
 MAX_PAGES = 5                   # ...for at most this many pages from each artist, topic, tag or popular
@@ -91,7 +95,7 @@ DEFAULT_CHOICES = """\
 #   tag: landscape            pictures tagged with this, newest first
 #
 # mature: yes                 also show pictures marked as mature (NSFW); no: don't
-# fill: yes                   if those give fewer than 20 new pictures in a day, make up
+# fill: yes                   if those give fewer than 30 new pictures in a day, make up
 #                             the rest from the Daily Deviations and the most popular
 
 mature: yes
@@ -407,6 +411,42 @@ def download(url, path):
 # Fetch today's new pictures into folder/<today>. They are fetched into a hidden folder (the
 # frame skips folders starting with "."), which is renamed when it is done, so that the frame
 # never sees half a set. Then the oldest pictures are deleted.
+# Download up to count pictures from source (deviations, best first) into the working
+# folder, passing over any that aren't wanted or were fetched before. Each is added to
+# credits (by its file name) and seen; seenIds is the ids in seen, for looking them up.
+def fetch(source, count, token, mature, working, credits, seen, seenIds):
+    fetched = 0
+
+    for deviation in source:
+        if fetched >= count:
+            return
+
+        devId = deviation.get("deviationid")
+        if not devId or devId in seenIds or not is_wanted(deviation, mature):
+            continue
+
+        seenIds.add(devId)
+        src = best_picture(deviation, token, mature)
+
+        if src is None:     # low resolution: remembered, so that it isn't looked at again
+            seen.append(devId)
+            continue
+
+        name = f"{len(credits):02d}{picture_type(src)}"
+
+        try:
+            download(src, os.path.join(working, name))
+        except Exception as exc:
+            print(f"Picture download failed: {deviation.get('url')}: {exc}")
+            continue
+
+        credits[name] = credit_text(deviation)
+        seen.append(devId)
+        fetched += 1
+        print(f"Downloaded picture {name}: {credits[name]}", flush=True)
+        time.sleep(REQUEST_PAUSE)
+
+
 # Returns True if it worked, False if not. Never raises.
 def update_pictures(folder):
     today = date.today().isoformat()
@@ -428,34 +468,14 @@ def update_pictures(folder):
         shutil.rmtree(working, ignore_errors=True)
         os.makedirs(working)
         credits = {}
+        mature = choices["mature"]
 
-        for deviation in candidates(token, choices, requests):
-            if len(credits) >= PICTURE_COUNT:
-                break
-
-            devId = deviation.get("deviationid")
-            if not devId or devId in seenIds or not is_wanted(deviation, choices["mature"]):
-                continue
-
-            seenIds.add(devId)
-            src = best_picture(deviation, token, choices["mature"])
-
-            if src is None:     # low resolution: remembered, so that it isn't looked at again
-                seen.append(devId)
-                continue
-
-            name = f"{len(credits):02d}{picture_type(src)}"
-
-            try:
-                download(src, os.path.join(working, name))
-            except Exception as exc:
-                print(f"Picture download failed: {deviation.get('url')}: {exc}")
-                continue
-
-            credits[name] = credit_text(deviation)
-            seen.append(devId)
-            print(f"Downloaded picture {name}: {credits[name]}", flush=True)
-            time.sleep(REQUEST_PAUSE)
+        # DAILY_COUNT of the Daily Deviations, then PICTURE_COUNT more from the choices
+        # (none the same as each other, or as any fetched before)
+        fetch(daily_deviations(token, mature, requests), DAILY_COUNT,
+              token, mature, working, credits, seen, seenIds)
+        fetch(candidates(token, choices, requests), PICTURE_COUNT,
+              token, mature, working, credits, seen, seenIds)
 
         if not credits:
             if requests.worked == 0:
