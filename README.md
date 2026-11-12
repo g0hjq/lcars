@@ -21,6 +21,10 @@ Each screen is in its own folder, and new ones can be added (see [Adding a scree
 the made-up ones from its test mode, one of them squawking an emergency, which turns the
 screen red.*
 
+![The DeviantArt frame](docs/deviantart.jpg)
+*The DeviantArt frame, showing one of my own photos with the clock in the corner. A
+downloaded picture has its title and artist shown in the other corner.*
+
 ![The biomonitor screen](docs/biomonitor.png)
 *The biomonitor screen.*
 
