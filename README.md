@@ -16,6 +16,14 @@ the Pi's GPIO pins or the arrow keys:
 
 Each screen is in its own folder, and new ones can be added (see [Adding a screen](#adding-a-screen)).
 
+![The LCARS screen](docs/lcars.png)
+*The LCARS screen, with the weather, the forecast and the aircraft radar. These aircraft are
+the made-up ones from its test mode, one of them squawking an emergency, which turns the
+screen red.*
+
+![The biomonitor screen](docs/biomonitor.png)
+*The biomonitor screen.*
+
 ## What you need
 
 - A Raspberry Pi (it was written on a Pi 5) running Raspberry Pi OS, with a 1920×1080 screen
@@ -182,6 +190,13 @@ the repository (see `.gitignore`):
 
 It can also react to the buttons with `handleEvent(self, event)`, which gets the `OK_PRESSED`
 and `OK_HELD` events from `screens.py`.
+
+## Made with Claude Code
+
+This project was written with help from [Claude Code](https://claude.com/claude-code),
+Anthropic's AI coding assistant. It was used to write and change the code, track down
+bugs, set it up to start when the Pi boots, and get it ready for GitHub (including this
+README and its screenshots), with the ideas, the testing and the final say coming from me.
 
 ## Credits
 

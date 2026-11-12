@@ -198,8 +198,8 @@ class DeviantArtFrameScreen(scr.Screen):
         self.loaded = None          # the next picture, once it has been loaded
         self.message = None         # shown instead of the pictures when there are none
         self.lastScan = -RESCAN_SECONDS     # when the folder was last looked in
-        self.clock = None           # the clock, drawn again only when the minute changes...
-        self.clockMinute = None     # ...which is kept here
+        self.clock = None           # the clock, drawn again only when what it shows changes...
+        self.clockShows = None      # ...which is kept here
         self.currentPath = None     # the file of the picture being shown
         self.notice = None          # "PICTURE DELETED", shown over the pictures...
         self.noticeUntil = 0        # ...until this time
@@ -398,10 +398,11 @@ class DeviantArtFrameScreen(scr.Screen):
     # The clock in the top right corner, over the pictures
     def drawClock(self, surface):
         now = time.localtime()
-        minute = (now.tm_yday, now.tm_hour, now.tm_min)
+        # Every second, as CLOCK_TIME_FORMAT may show the seconds
+        shows = (now.tm_yday, now.tm_hour, now.tm_min, now.tm_sec)
 
-        if minute != self.clockMinute:
+        if shows != self.clockShows:
             self.clock = makeClock(now)
-            self.clockMinute = minute
+            self.clockShows = shows
 
         surface.blit(self.clock, self.clock.get_rect(topright=(scr.SCREEN_WIDTH - CLOCK_MARGIN, CLOCK_MARGIN)))
