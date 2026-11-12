@@ -23,7 +23,7 @@ screen red.*
 
 ![The DeviantArt frame](docs/deviantart.jpg)
 *The DeviantArt frame, showing one of my own photos with the clock in the corner. A
-downloaded picture has its title and artist shown in the other corner.*
+downloaded picture has its title and artist shown in the bottom right corner.*
 
 ![The biomonitor screen](docs/biomonitor.png)
 *The biomonitor screen.*
