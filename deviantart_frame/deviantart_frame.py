@@ -28,9 +28,11 @@ taken with the camera on its side are turned the right way up, and big JPEGs loa
 much faster. Without it they are loaded by pygame as they are.
 """
 
+import datetime
 import json
 import os
 import random
+import re
 import threading
 import time
 import traceback
@@ -162,15 +164,61 @@ def drawCredit(surface, credit):
     surface.blit(box, box.get_rect(bottomright=(scr.SCREEN_WIDTH - CREDIT_MARGIN, scr.SCREEN_HEIGHT - CREDIT_MARGIN)))
 
 
+# How wide text in this format, in this font, can ever be: it is made for every day of
+# the week, every month and both halves of the day, with every digit in it changed to
+# the widest one, and the widest of those is taken
+def widestText(textFormat, font):
+    digitWidths = {digit: font.size(digit)[0] for digit in "0123456789"}
+    widestDigit = max(digitWidths, key=digitWidths.get)
+
+    widest = 0
+    for month in range(1, 13):
+        for day in range(1, 8):
+            for hour in (0, 12):
+                when = datetime.datetime(2026, month, day, hour)
+                text = re.sub("[0-9]", widestDigit, when.strftime(textFormat).upper())
+                widest = max(widest, font.size(text)[0])
+    return widest
+
+
+# The width of the clock's text, the same whatever the time and date, so that the box
+# round it doesn't change size as they change. Worked out the first time it is needed.
+_clockTextWidth = None
+
+def clockTextWidth():
+    global _clockTextWidth
+    if _clockTextWidth is None:
+        _clockTextWidth = max(widestText(CLOCK_TIME_FORMAT, fonts.fontFor(fonts.TextSize.XXL)),
+                              widestText(CLOCK_DAY_FORMAT, fonts.fontFor(CLOCK_DATE_SIZE)),
+                              widestText(CLOCK_DATE_FORMAT, fonts.fontFor(CLOCK_DATE_SIZE)))
+    return _clockTextWidth
+
+
+# Render text with every digit in a space as wide as the widest digit, centred in it,
+# so that it stays the same width, and nothing in it moves, as the digits change
+def renderFixedDigits(text, font, colour):
+    slot = max(font.size(digit)[0] for digit in "0123456789")
+    chars = [(char, slot if char.isdigit() else font.size(char)[0]) for char in text]
+
+    image = pygame.Surface((sum(width for _, width in chars), font.get_height()), pygame.SRCALPHA)
+    x = 0
+    for char, width in chars:
+        charImage = font.render(char, True, colour)
+        image.blit(charImage, (x + (width - charImage.get_width()) // 2, 0))
+        x += width
+    return image
+
+
 # The clock: the time in big text, and the day of the week and the date under it, lined
 # up on the right, on a dark background so that they can be read on any picture
 def makeClock(now):
-    lines = ((time.strftime(CLOCK_TIME_FORMAT, now), fonts.TextSize.XXL, WHITE),
-             (time.strftime(CLOCK_DAY_FORMAT, now), CLOCK_DATE_SIZE, WHITE),
+    timeText = time.strftime(CLOCK_TIME_FORMAT, now).upper()
+    lines = ((time.strftime(CLOCK_DAY_FORMAT, now), CLOCK_DATE_SIZE, WHITE),
              (time.strftime(CLOCK_DATE_FORMAT, now), CLOCK_DATE_SIZE, WHITE))
 
-    images = [fonts.fontFor(size).render(text.upper(), True, colour) for text, size, colour in lines]
-    width = max(image.get_width() for image in images) + 2 * CLOCK_PAD
+    images = [renderFixedDigits(timeText, fonts.fontFor(fonts.TextSize.XXL), WHITE)]
+    images += [fonts.fontFor(size).render(text.upper(), True, colour) for text, size, colour in lines]
+    width = max([clockTextWidth()] + [image.get_width() for image in images]) + 2 * CLOCK_PAD
     height = sum(image.get_height() for image in images) + 2 * CLOCK_PAD
 
     clock = pygame.Surface((width, height), pygame.SRCALPHA)
