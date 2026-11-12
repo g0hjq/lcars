@@ -1,0 +1,7 @@
+# Keep Unix line endings, even when checked out on Windows, so the scripts run on the Pi
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.mp3 binary
+*.ttf binary
+*.sqlite binary

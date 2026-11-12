@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# Keys, logins and your own settings: never put these on GitHub
+my_settings.py
+deviantart_frame/deviantart_key.txt
+lcars_frame/credentials.json
+lcars_frame/token.json
+
+# Made by the program as it runs
+deviantart_frame/deviantart_choices.txt
+deviantart_frame/pictures/
+.cache.sqlite
+.lgd-*
