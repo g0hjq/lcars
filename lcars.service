@@ -1,0 +1,16 @@
+[Unit]
+Description=LCARS display
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/lcars3
+Environment=SDL_VIDEODRIVER=kmsdrm
+ExecStartPre=/bin/sleep 10
+ExecStart=/usr/bin/python3 /home/pi/lcars3/lcars.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
