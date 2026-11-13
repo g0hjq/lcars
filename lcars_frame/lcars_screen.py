@@ -1498,6 +1498,22 @@ class LcarsScreen(scr.Screen):
         self.timerMax = 0
 
 
+    # A new colour scheme: the screen is built again in new colours, and everything on it is
+    # filled in afresh by the updates in update()
+    def newColours(self):
+        chooseColours()
+        buildInterface(self.background)
+        self.lastUnixTime = -1
+        self.lastminuteIndex = -1
+        self.lastCPUUpdate = -1
+
+
+    # The OK button (or Enter) changes the colour scheme
+    def handleEvent(self, event):
+        if event.type == scr.OK_PRESSED or (event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE)):
+            self.newColours()
+
+
     def update(self, visible):
         frameStart = time.perf_counter()
 
@@ -1505,16 +1521,11 @@ class LcarsScreen(scr.Screen):
         currentLocalTime = time.localtime(currentUnixTime)
 
 
-        # On the hour the colour scheme changes: the screen is built again in new colours, and
-        # everything on it is filled in afresh by the updates below
+        # On the hour the colour scheme changes (and when the OK button is pressed, see handleEvent)
         hourKey = (currentLocalTime.tm_yday, currentLocalTime.tm_hour)
         if hourKey != self.lastHourKey:
             if self.lastHourKey is not None:
-                chooseColours()
-                buildInterface(self.background)
-                self.lastUnixTime = -1
-                self.lastminuteIndex = -1
-                self.lastCPUUpdate = -1
+                self.newColours()
 
             self.lastHourKey = hourKey
 
