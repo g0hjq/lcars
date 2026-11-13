@@ -1,7 +1,7 @@
 # LCARS display
 
 A Star Trek LCARS-style display for a Raspberry Pi, written in Python with pygame. It fills
-a 1920×1080 screen and shows one of four screens at a time, changed with push buttons on
+a 1920×1080 screen and shows one of eight screens at a time, changed with push buttons on
 the Pi's GPIO pins or the arrow keys:
 
 - **LCARS**: an ambient screen that sits there looking busy. It shows a clock, the weather
@@ -19,6 +19,20 @@ the Pi's GPIO pins or the arrow keys:
   chimes the Westminster Quarters every quarter of an hour and strikes the hour, even behind
   the other screens. It is silent from midnight to 9am, and the OK button turns the chimes
   and the ticking off and on (see the settings at the top of `clock_frame/clock.py`).
+- **Departures board**: an old split-flap board, like a station's or an airport's, listing the
+  aircraft your receiver can hear: flight, from, to, distance, height and what it is doing.
+  The letters clatter round when anything changes, and you can hear them.
+- **Aquarium**: a tropical fish tank, with fish of several kinds, a school of neon tetras,
+  swaying plants, bubbles and sunlight rippling on the sand. The OK button feeds the fish. At
+  night (the clock's quiet hours) the light goes down and the fish rest.
+- **Viewscreen**: the view from the bridge at impulse, with a planet or nebula ahead. The OK
+  button (or a few minutes' wait) goes to warp, and it drops out later somewhere new: each
+  planet and nebula is made up by the program, with a made-up name.
+- **Lava lamp**: a big lava lamp glowing in a dark room, whose colours change every hour (or
+  with the OK button).
+
+The sounds are all made by the program as it starts (see `synth.py`), so there are no sound
+files apart from the biomonitor's heartbeat.
 
 Each screen is in its own folder, and new ones can be added (see [Adding a screen](#adding-a-screen)).
 
@@ -33,6 +47,23 @@ downloaded picture has its title and artist shown in the bottom right corner.*
 
 ![The biomonitor screen](docs/biomonitor.png)
 *The biomonitor screen.*
+
+![The clock](docs/clock.jpg)
+*The clock, with the moon's phase at the top of the dial and the day, the date and the month
+below the middle. What the OK button has chosen for the sound is in the corner.*
+
+![The departures board](docs/departures.png)
+*The departures board, showing the LCARS screen's made-up test aircraft. From and To are only
+filled in for flights to or from your own airport.*
+
+![The aquarium](docs/aquarium.jpg)
+*The aquarium.*
+
+![The viewscreen](docs/viewscreen.jpg)
+*The viewscreen at impulse, near one of its made-up planets.*
+
+![The lava lamp](docs/lavalamp.jpg)
+*The lava lamp, in one of its eight pairs of colours.*
 
 ## What you need
 
@@ -148,11 +179,20 @@ used, so nothing else is needed.
 | --- | --- | --- | --- |
 | PREVIOUS | GPIO22 (pin 15) | Left arrow | previous screen |
 | NEXT | GPIO17 (pin 11) | Right arrow | next screen |
-| OK, pressed briefly | GPIO27 (pin 13) | Enter or space | LCARS: new colours; DeviantArt frame: next picture; clock: chimes and ticking, chimes only, ticking only, silent |
+| OK, pressed briefly | GPIO27 (pin 13) | Enter or space | depends on the screen: see below |
 | OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: chime the last quarter again |
 | | | Esc or Q | quit (the service starts it again) |
 
 Ground is pin 9, 14 or 20.
+
+What a brief press of OK does on each screen:
+
+- LCARS: new colours
+- DeviantArt frame: the next picture
+- Clock: goes round chimes and ticking, chimes only, ticking only, and silent
+- Aquarium: feeds the fish
+- Viewscreen: goes to warp, or drops out of it
+- Lava lamp: new colours
 
 ## Files
 
@@ -170,6 +210,11 @@ lcars_frame/             the LCARS screen, and the weather, calendar and aircraf
 deviantart_frame/        the DeviantArt picture frame, and its downloader
 biomonitor_frame/        the biomonitor screen, with its pointer, font and heartbeat
 clock_frame/             the clock screen, and its chimes
+departures_frame/        the split-flap departures board
+aquarium_frame/          the fish tank
+viewscreen_frame/        the bridge viewscreen, its warp jumps and its made-up planets
+lavalamp_frame/          the lava lamp
+synth.py                 makes sounds from tones and noise, for the screens
 ```
 
 These hold keys, logins or your own settings, or are made as it runs, so they are left out of
