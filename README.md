@@ -1,7 +1,7 @@
 # LCARS display
 
 A Star Trek LCARS-style display for a Raspberry Pi, written in Python with pygame. It fills
-a 1920×1080 screen and shows one of three screens at a time, changed with push buttons on
+a 1920×1080 screen and shows one of four screens at a time, changed with push buttons on
 the Pi's GPIO pins or the arrow keys:
 
 - **LCARS**: an ambient screen that sits there looking busy. It shows a clock, the weather
@@ -14,6 +14,11 @@ the Pi's GPIO pins or the arrow keys:
 - **Biomonitor**: the sickbay biomonitor, with a row of dials whose pointers drift around
   their normal ranges, and lamps that flash with the breathing and the heartbeat (which you
   can hear).
+- **Clock**: a large old-fashioned analogue clock, in brass with Roman numerals and blued
+  steel hands, a moon-phase window, and windows showing the day, the date and the month. It ticks gently while it is shown, and
+  chimes the Westminster Quarters every quarter of an hour and strikes the hour, even behind
+  the other screens. It is silent from midnight to 9am, and the OK button turns the chimes
+  and the ticking off and on (see the settings at the top of `clock_frame/clock.py`).
 
 Each screen is in its own folder, and new ones can be added (see [Adding a screen](#adding-a-screen)).
 
@@ -143,8 +148,8 @@ used, so nothing else is needed.
 | --- | --- | --- | --- |
 | PREVIOUS | GPIO22 (pin 15) | Left arrow | previous screen |
 | NEXT | GPIO17 (pin 11) | Right arrow | next screen |
-| OK, pressed briefly | GPIO27 (pin 13) | Enter or space | DeviantArt frame: next picture |
-| OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again |
+| OK, pressed briefly | GPIO27 (pin 13) | Enter or space | LCARS: new colours; DeviantArt frame: next picture; clock: chimes and ticking, chimes only, ticking only, silent |
+| OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: chime the last quarter again |
 | | | Esc or Q | quit (the service starts it again) |
 
 Ground is pin 9, 14 or 20.
@@ -164,6 +169,7 @@ disable_service.sh       stop the service, and not at boot
 lcars_frame/             the LCARS screen, and the weather, calendar and aircraft it shows
 deviantart_frame/        the DeviantArt picture frame, and its downloader
 biomonitor_frame/        the biomonitor screen, with its pointer, font and heartbeat
+clock_frame/             the clock screen, and its chimes
 ```
 
 These hold keys, logins or your own settings, or are made as it runs, so they are left out of

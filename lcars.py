@@ -5,6 +5,7 @@
 #   lcars_frame/      the LCARS screen, and everything it uses
 #   deviantart_frame/ the DeviantArt picture frame, its daily downloads and its pictures
 #   biomonitor_frame/ the sickbay biomonitor dials
+#   clock_frame/      an old analogue clock, with the date, that chimes the quarters
 #   fonts.py          the fonts every screen draws its text in (the font files are in fonts/)
 #
 #   LEFT and RIGHT arrow keys, or the two GPIO buttons (see gpio_buttons.py), to change screen.
@@ -17,6 +18,7 @@ import screens as scr
 from lcars_frame.lcars_screen import LcarsScreen
 from deviantart_frame.deviantart_frame import DeviantArtFrameScreen
 from biomonitor_frame.biomonitor import BiomonitorScreen
+from clock_frame.clock import ClockScreen
 
 
 FRAME_RATE = 30
@@ -35,6 +37,7 @@ def main():
         LcarsScreen(),
         DeviantArtFrameScreen(),
         BiomonitorScreen(),
+        ClockScreen(),
     ])
     switcher.start()
     buttons = gb.startButtons()
