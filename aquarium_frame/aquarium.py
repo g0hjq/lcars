@@ -665,6 +665,14 @@ class School:
 class AquariumScreen(scr.Screen):
 
     name = "AQUARIUM"
+    hasSound = True
+
+    def soundList(self):
+        return [(self.bubbling, 1.0), (self.plip, 1.0)]
+
+    def setSound(self, on):
+        if not on:
+            self.leave()
 
     def start(self):
         rng = np.random.default_rng(31)
@@ -718,7 +726,7 @@ class AquariumScreen(scr.Screen):
             middle = random.uniform(300, W - 300)
             for _ in range(FOOD_FLAKES):
                 self.flakes.append(Flake(middle + random.gauss(0, 90)))
-            if self.plip:
+            if self.plip and self.soundOn:
                 self.plip.play()
 
 
@@ -738,11 +746,12 @@ class AquariumScreen(scr.Screen):
             for fish in self.fish:
                 fish.target = fish.newTarget(night)
 
-        # the sound of the bubbles, except at night
+        # the sound of the bubbles, except at night or with the sound off
         if self.bubbling:
-            if not night and (self.bubbleChannel is None or not self.bubbleChannel.get_busy()):
+            quiet = night or not self.soundOn
+            if not quiet and (self.bubbleChannel is None or not self.bubbleChannel.get_busy()):
                 self.bubbleChannel = self.bubbling.play(loops=-1)
-            elif night and self.bubbleChannel:
+            elif quiet and self.bubbleChannel:
                 self.bubbleChannel.fadeout(1000)
                 self.bubbleChannel = None
 

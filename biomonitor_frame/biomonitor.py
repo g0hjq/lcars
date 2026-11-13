@@ -572,6 +572,14 @@ def load_sound(path):
 class BiomonitorScreen(scr.Screen):
 
     name = "BIOMONITOR"
+    hasSound = True
+
+    def soundList(self):
+        return [(self.heartbeat, 1.0)]
+
+    # No heartbeat while its sound is off
+    def setSound(self, on):
+        self.pulse.sound = self.heartbeat if on else None
 
     def start(self):
         random.seed()
@@ -581,7 +589,8 @@ class BiomonitorScreen(scr.Screen):
         self.arrow = pygame.image.load(ARROW_FILE).convert_alpha()
 
         self.respiration = IndicatorLamp(scr.SCREEN_WIDTH / 2, 135, RESPIRATION_RATE)
-        self.pulse = IndicatorLamp(scr.SCREEN_WIDTH / 2, 450, PULSE_RATE, load_sound(HEARTBEAT_FILE))
+        self.heartbeat = load_sound(HEARTBEAT_FILE)
+        self.pulse = IndicatorLamp(scr.SCREEN_WIDTH / 2, 450, PULSE_RATE, self.heartbeat if self.soundOn else None)
         self.lastTicks = pygame.time.get_ticks()
 
 

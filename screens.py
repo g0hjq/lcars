@@ -1,8 +1,10 @@
 """
 screens.py
 
-The display shows one screen at a time (the LCARS screen, the picture frame...), and
-the left and right arrow keys, or the two buttons (see gpio_buttons.py), move between them.
+The display shows one screen at a time (the LCARS screen, the picture frame...). The NEXT
+button (or the right arrow key) moves on to the next, going round them all, and the SOUND
+button (or the left arrow key, or M) sets the volume of the one shown: low, medium, high or
+off, in turn, with a notice in the middle of the screen saying which (see gpio_buttons.py).
 
 To add a screen, make a folder for it (like lcars_frame and deviantart_frame) with an empty
 __init__.py and a file with a class based on Screen in it, fill in the methods it needs,
@@ -19,15 +21,24 @@ the folder, its files import each other with "from . import ...".
             ...                         # draw the whole screen on the surface
 """
 
+import os
 import pygame
 
 # The size of the display, which every screen fills
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 
-# Posted (e.g. by the buttons, from their own thread) to move to the next or previous screen
+# Posted (e.g. by the buttons, from their own thread) to move to the next screen, or to turn
+# the sound of the one shown off or on
 NEXT_SCREEN = pygame.event.custom_type()
-PREVIOUS_SCREEN = pygame.event.custom_type()
+TOGGLE_SOUND = pygame.event.custom_type()
+
+NOTICE_SECONDS = 2.5            # how long the volume is shown after it is changed
+
+# The volumes the SOUND button goes round, and how loud each is: high is the loudness each
+# screen sets for itself, and medium and low are 6 and 12 dB quieter
+VOLUMES = [("OFF", 0.0), ("LOW", 0.25), ("MEDIUM", 0.5), ("HIGH", 1.0)]
+VOLUME_ORDER = [1, 2, 3, 0]     # low, medium, high, off, and round again
 
 # Posted when the OK button has been pressed briefly, or held down for a while (see
 # gpio_buttons.py). They are passed on to the screen that is shown, which can do what it
@@ -39,6 +50,16 @@ OK_HELD = pygame.event.custom_type()
 class Screen:
 
     name = "SCREEN"             # shown in the messages when the screen is changed
+    hasSound = False            # True for a screen that makes any sound...
+    volumeLevel = 3             # ...and how loud, as an index into VOLUMES (it starts high)
+
+    @property
+    def volume(self):
+        return VOLUMES[self.volumeLevel][1]
+
+    @property
+    def soundOn(self):
+        return self.volume > 0
 
     # Once, when the program starts, after the display has been set up: load things, start threads
     def start(self):
@@ -70,6 +91,26 @@ class Screen:
     def draw(self, surface):
         raise NotImplementedError
 
+    # The screen's sounds, as (pygame Sound, how loud it is compared with the others), so
+    # that the SOUND button can set their volume
+    def soundList(self):
+        return []
+
+    # Set the volume (an index into VOLUMES), with the SOUND button
+    def setVolumeLevel(self, level):
+        wasOn = self.soundOn
+        self.volumeLevel = level
+        for sound, loudness in self.soundList():
+            if sound is not None:
+                sound.set_volume(min(1.0, self.volume * loudness))
+        if self.soundOn != wasOn:
+            self.setSound(self.soundOn)
+
+    # Called when the sound is turned off or back on: a screen stops anything that keeps
+    # playing (a loop, say) here. While it is off, a screen plays nothing (see soundOn).
+    def setSound(self, on):
+        pass
+
 
 # Keeps the screens, and which one is shown
 class ScreenSwitcher:
@@ -77,6 +118,7 @@ class ScreenSwitcher:
     def __init__(self, screens):
         self.screens = list(screens)
         self.index = 0
+        self.notice = None          # (picture, when it was shown) of the sound notice
 
     @property
     def current(self):
@@ -102,15 +144,31 @@ class ScreenSwitcher:
         print(f"Screen: {self.current.name}")
         self.current.enter()
 
-    # Change screen if it is one of the events that does that, otherwise pass it on to
-    # the screen that is shown
+    # Change screen, or turn its sound off or on, if it is one of the events that does that;
+    # otherwise pass it on to the screen that is shown
     def handleEvent(self, event):
         if event.type == NEXT_SCREEN or (event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT):
+            self.notice = None
             self.move(1)
-        elif event.type == PREVIOUS_SCREEN or (event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT):
-            self.move(-1)
+        elif event.type == TOGGLE_SOUND or (event.type == pygame.KEYDOWN and event.key in (pygame.K_LEFT, pygame.K_m)):
+            self.toggleSound()
         else:
             self.current.handleEvent(event)
+
+    # The next volume for the screen shown, and a notice saying what it is
+    def toggleSound(self):
+        screen = self.current
+        if screen.hasSound:
+            level = VOLUME_ORDER[(VOLUME_ORDER.index(screen.volumeLevel) + 1) % len(VOLUME_ORDER)]
+            screen.setVolumeLevel(level)
+            name = VOLUMES[level][0]
+            text = f"{screen.name}   SOUND OFF" if level == 0 else f"{screen.name}   VOLUME {name}"
+            print(f"Sound: {text}")
+            colour = (255, 153, 0) if screen.soundOn else (230, 61, 61)
+            bars = level
+        else:
+            text, colour, bars = f"{screen.name}   NO SOUND", (153, 153, 204), None
+        self.notice = (makeNotice(text, colour, bars), pygame.time.get_ticks())
 
     def update(self):
         for screen in self.screens:
@@ -118,3 +176,40 @@ class ScreenSwitcher:
 
     def draw(self, surface):
         self.current.draw(surface)
+
+        if self.notice:
+            picture, shown = self.notice
+            age = (pygame.time.get_ticks() - shown) / 1000
+            if age > NOTICE_SECONDS:
+                self.notice = None
+            else:
+                picture.set_alpha(int(255 * min(1.0, (NOTICE_SECONDS - age) / 0.4)))
+                surface.blit(picture, picture.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)))
+
+
+# The notice of the volume: an LCARS lozenge with the words in it, and beside them, for a
+# screen with sound, three bars showing how loud (bars of them lit, out of 3)
+def makeNotice(text, colour, bars=None):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts", "Antonio-Bold.ttf")
+    try:
+        font = pygame.font.Font(path, 64)
+    except (pygame.error, OSError):
+        font = pygame.font.SysFont("arial", 64, bold=True)
+    words = font.render(text, True, (0, 0, 0))
+    h = words.get_height() + 30
+    barsWidth = 0 if bars is None else 3 * 26 + 40
+    w = words.get_width() + 2 * h + barsWidth
+    picture = pygame.Surface((w, h), pygame.SRCALPHA)
+    picture.fill((0, 0, 0, 0))
+    pygame.draw.rect(picture, colour, picture.get_rect(), border_radius=h // 2)
+    picture.blit(words, words.get_rect(midleft=(h, h // 2)))
+    if bars is not None:
+        x = h + words.get_width() + 40
+        for i in range(3):
+            height = int(h * (0.3 + 0.18 * i))
+            rect = pygame.Rect(x + i * 26, h - 16 - height, 18, height)
+            if i < bars:
+                pygame.draw.rect(picture, (0, 0, 0), rect)
+            else:
+                pygame.draw.rect(picture, (0, 0, 0), rect, 2)
+    return picture

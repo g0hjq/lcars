@@ -5,15 +5,15 @@ Three push buttons on the Raspberry Pi's GPIO pins. Each one is wired between it
 a ground (GND) pin: the Pi's own pull-up resistor holds the pin high, and pressing the
 button pulls it low. No resistors are needed.
 
-    PREVIOUS_PIN  GPIO22  (physical pin 15)   previous screen
-    NEXT_PIN      GPIO17  (physical pin 11)   next screen
+    SOUND_PIN     GPIO22  (physical pin 15)   the volume of the screen shown: low, medium, high, off
+    NEXT_PIN      GPIO17  (physical pin 11)   next screen, going round them all
     OK_PIN        GPIO27  (physical pin 13)   pressed briefly, or held down for HOLD_SECONDS:
                                               passed on to the screen shown (the DeviantArt
                                               frame moves on to the next picture, or deletes
                                               the one it is showing)
     ground        GND     (physical pin 9, 14 or 20)
 
-A press of the first two posts screens.PREVIOUS_SCREEN or screens.NEXT_SCREEN, which the
+A press of the first two posts screens.TOGGLE_SOUND or screens.NEXT_SCREEN, which the
 main loop handles just like the left and right arrow keys. Pressing the OK one
 briefly posts screens.OK_PRESSED when it is let go; holding it down posts screens.OK_HELD
 (and nothing more when it is let go).
@@ -26,7 +26,7 @@ pins can't be had, a message is printed and the keys still work.
 import pygame
 import screens as scr
 
-PREVIOUS_PIN = 22
+SOUND_PIN = 22                  # (it was the PREVIOUS button)
 NEXT_PIN = 17
 OK_PIN = 27
 HOLD_SECONDS = 2            # how long the OK button must be held down
@@ -78,7 +78,7 @@ def startButtons():
 
     buttons = []
 
-    for pin, eventType in ((PREVIOUS_PIN, scr.PREVIOUS_SCREEN),
+    for pin, eventType in ((SOUND_PIN, scr.TOGGLE_SOUND),
                            (NEXT_PIN, scr.NEXT_SCREEN),
                            (OK_PIN, None)):
         try:

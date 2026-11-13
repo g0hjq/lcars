@@ -1,8 +1,8 @@
 # LCARS display
 
 A Star Trek LCARS-style display for a Raspberry Pi, written in Python with pygame. It fills
-a 1920×1080 screen and shows one of eight screens at a time, changed with push buttons on
-the Pi's GPIO pins or the arrow keys:
+a 1920×1080 screen and shows one of eight screens at a time, changed with a push button on
+the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
 
 - **LCARS**: an ambient screen that sits there looking busy. It shows a clock, the weather
   forecast, your next Google Calendar events, the Pi's CPU and memory use, and a radar of the
@@ -17,31 +17,35 @@ the Pi's GPIO pins or the arrow keys:
 - **Clock**: a large old-fashioned analogue clock, in brass with Roman numerals and blued
   steel hands, a moon-phase window, and windows showing the day, the date and the month. It ticks gently while it is shown, and
   chimes the Westminster Quarters every quarter of an hour and strikes the hour, even behind
-  the other screens. It is silent from midnight to 9am, and the OK button turns the chimes
-  and the ticking off and on (see the settings at the top of `clock_frame/clock.py`).
+  the other screens. It is silent from midnight to 9am, and the OK button goes round chimes
+  and ticking, chimes only, and ticking only (the SOUND button turns them both off) (see the settings at the top of `clock_frame/clock.py`).
 - **Departures board**: an old split-flap board, like a station's or an airport's, listing the
   aircraft your receiver can hear: flight, from, to, distance, height and what it is doing.
-  The letters clatter round when anything changes, and you can hear them.
+  It is brought up to date every 10 seconds (`UPDATE_SECONDS` in `departures_frame/departures.py`),
+  when the letters clatter round to anything that has changed, and you can hear them.
 - **Aquarium**: a tropical fish tank, with fish of several kinds, a school of neon tetras,
   swaying plants, bubbles and sunlight rippling on the sand. The OK button feeds the fish. At
   night (the clock's quiet hours) the light goes down and the fish rest.
-- **Viewscreen**: the view from the bridge at impulse, with a planet or nebula ahead. The OK
-  button (or a few minutes' wait) goes to warp, and it drops out later somewhere new: each
-  planet and nebula is made up by the program, with a made-up name.
+- **Viewscreen**: the bridge's main viewscreen, set in its metal frame in the bulkhead, with
+  running lights chasing round it and a console below. At impulse there is a planet or nebula
+  ahead; the OK button (or a few minutes' wait) powers up and goes to warp, the lights turning
+  blue, and it drops out later somewhere new: each planet and nebula is made up by the
+  program, with a made-up name. The bridge hums, and the consoles chirp now and then.
 - **Lava lamp**: a big lava lamp glowing in a dark room, whose colours change every hour (or
   with the OK button).
 
 The sounds are all made by the program as it starts (see `synth.py`), so there are no sound
 files apart from the biomonitor's heartbeat. How loud each one is, from 0 to 1, is set at the
-top of its screen's file (and by the Pi's own volume):
+top of its screen's file (and by the Pi's own volume). That is the loudest, HIGH: the SOUND
+button turns each screen down from there (see [Buttons](#buttons)).
 
 | Sound | Setting |
 | --- | --- |
 | LCARS alerts | `VOLUME` in `lcars_frame/lcars_sound.py` (0.9) |
-| Clock chimes and tick | `CHIME_VOLUME` (0.6) and `TICK_VOLUME` (0.12) in `clock_frame/clock.py` |
-| Departures board flaps | `SOUND_VOLUME` in `departures_frame/departures.py` (0.1) |
+| Clock chimes and tick | `CHIME_VOLUME` in `clock_frame/clock.py` (0.6); the tick is always 12 dB quieter (`TICK_LOUDNESS`) |
+| Departures board flaps | `SOUND_VOLUME` in `departures_frame/departures.py` (0.2) |
 | Aquarium bubbles | `SOUND_VOLUME` in `aquarium_frame/aquarium.py` (0.075) |
-| Viewscreen engines and warp | `SOUND_VOLUME` in `viewscreen_frame/viewscreen.py` (0.5) |
+| Viewscreen hum, chirps and warp | `SOUND_VOLUME` in `viewscreen_frame/viewscreen.py` (0.5) |
 
 Each screen is in its own folder, and new ones can be added (see [Adding a screen](#adding-a-screen)).
 
@@ -186,8 +190,8 @@ used, so nothing else is needed.
 
 | Button | Pin | Key | What it does |
 | --- | --- | --- | --- |
-| PREVIOUS | GPIO22 (pin 15) | Left arrow | previous screen |
-| NEXT | GPIO17 (pin 11) | Right arrow | next screen |
+| SOUND | GPIO22 (pin 15) | Left arrow or M | the volume of the screen shown, in turn: LOW, MEDIUM, HIGH and OFF (12 dB down, 6 dB down, as set, and silent). A notice in the middle of the screen says which for a moment. Each screen remembers its own, starting at HIGH when the program starts. |
+| NEXT | GPIO17 (pin 11) | Right arrow | next screen, going round them all |
 | OK, pressed briefly | GPIO27 (pin 13) | Enter or space | depends on the screen: see below |
 | OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: chime the last quarter again |
 | | | Esc or Q | quit (the service starts it again) |
@@ -198,7 +202,7 @@ What a brief press of OK does on each screen:
 
 - LCARS: new colours
 - DeviantArt frame: the next picture
-- Clock: goes round chimes and ticking, chimes only, ticking only, and silent
+- Clock: goes round chimes and ticking, chimes only, and ticking only
 - Aquarium: feeds the fish
 - Viewscreen: goes to warp, or drops out of it
 - Lava lamp: new colours
@@ -255,6 +259,11 @@ the repository (see `.gitignore`):
 
 It can also react to the buttons with `handleEvent(self, event)`, which gets the `OK_PRESSED`
 and `OK_HELD` events from `screens.py`.
+
+If it makes any sound, set `hasSound = True` in the class, return its pygame Sounds from
+`soundList()` (as `(sound, 1.0)` pairs) so that the SOUND button can set their volume, and
+check `self.soundOn` before playing anything. When the sound is turned off or back on, its
+`setSound(on)` is called, where a sound that keeps playing (a loop, say) can be stopped.
 
 ## Made with Claude Code
 

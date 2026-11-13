@@ -34,6 +34,7 @@ SOUNDS = {
 }
 
 sounds = {}                 # name -> pygame.mixer.Sound, filled in by initSound
+muted = False               # True: play() does nothing (the LCARS screen's sound is turned off)
 
 
 # The samples of one note, as numbers from -32767 to 32767. A pause is all zeros.
@@ -93,7 +94,7 @@ def initSound():
 def play(name):
     sound = sounds.get(name)
 
-    if sound is not None:
+    if sound is not None and not muted:
         sound.play()
 		
 		

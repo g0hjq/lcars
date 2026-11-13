@@ -1455,6 +1455,14 @@ def buildInterface(background):
 class LcarsScreen(scr.Screen):
 
     name = "LCARS"
+    hasSound = True
+
+    def soundList(self):
+        return [(s, 1.0) for s in sound.sounds.values()]
+
+    # The alarms are silent while its sound is off
+    def setSound(self, on):
+        sound.muted = not on
 
     def start(self):
         global weatherIcons

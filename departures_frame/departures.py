@@ -31,7 +31,7 @@ from lcars_frame import lookups as lk
 ##==================================================================
 
 SOUND = True
-SOUND_VOLUME = 0.1              # 0 to 1
+SOUND_VOLUME = 0.2              # 0 to 1
 
 # The columns: heading, and how many letters wide
 COLUMNS = [("FLIGHT", 7), ("FROM", 11), ("TO", 11), ("DISTANCE", 8), ("HEIGHT", 6), ("STATUS", 10)]
@@ -43,6 +43,7 @@ COLUMN_GAP = 24                 # ...and between the columns
 ROW_PITCH = 60
 TOP = 196                       # the top of the first row
 
+UPDATE_SECONDS = 10             # the aircraft on the board are brought up to date this often
 FLIP_SECONDS = 0.045            # how long a flap takes to fall to the next letter
 START_SPREAD = 0.35             # the flaps start up to this long after one another, as on a real board
 
@@ -297,6 +298,10 @@ def messageRow(text, colour):
 class DeparturesScreen(scr.Screen):
 
     name = "DEPARTURES"
+    hasSound = True
+
+    def soundList(self):
+        return [(self.rattle, 1.0)]
 
     # source is the LCARS screen, whose aircraft, routes and types are shown
     def __init__(self, source):
@@ -389,7 +394,7 @@ class DeparturesScreen(scr.Screen):
         return rows
 
 
-    # Set the flaps turning to what the board should say
+    # Set the flaps of the rows turning to what the board should say
     def setTargets(self):
         rows = self.readAircraft()
         for r, row in enumerate(self.rows):
@@ -398,6 +403,8 @@ class DeparturesScreen(scr.Screen):
                 char, colour = letters[i] if i < len(letters) else (" ", TEXT)
                 self.setFlap(flap, char, colour)
 
+
+    def setClock(self):
         for flap, char in zip(self.clock, time.strftime("%H:%M")):
             self.setFlap(flap, char, TEXT)
 
@@ -432,9 +439,12 @@ class DeparturesScreen(scr.Screen):
         dt = min(0.1, (ticks - self.lastTicks) / 1000)
         self.lastTicks = ticks
 
-        if time.time() - self.lastRead >= 1:
+        # the rows change only every UPDATE_SECONDS, so the board isn't always clattering;
+        # the clock as soon as the minute changes
+        if time.time() - self.lastRead >= UPDATE_SECONDS:
             self.lastRead = time.time()
             self.setTargets()
+        self.setClock()
 
         turning = 0
         for flap in self.flaps:
@@ -452,11 +462,11 @@ class DeparturesScreen(scr.Screen):
         if not self.rattle:
             return
 
-        if turning:
+        if turning and self.soundOn:
             if self.rattleChannel is None or not self.rattleChannel.get_busy():
                 self.rattleChannel = self.rattle.play(loops=-1)
             if self.rattleChannel:
-                self.rattleChannel.set_volume(min(1.0, 0.15 + turning / 60))
+                self.rattleChannel.set_volume(min(1.0, 0.6 + turning / 50))
         elif self.rattleChannel:
             self.rattleChannel.fadeout(150)
             self.rattleChannel = None

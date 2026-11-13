@@ -1,7 +1,8 @@
 """
 viewscreen.py
 
-The view from the bridge: stars drifting slowly past at impulse, with a planet or a nebula
+The main viewscreen on the bridge, set in its frame in the bulkhead, with running lights
+chasing round it and a console below: stars drift slowly past at impulse, with a planet or a nebula
 ahead. Press OK (or Enter), or wait a few minutes, and the ship goes to warp: the stars
 stretch into streaks, there is a flash, and they stream past. A while later it drops out
 of warp somewhere new, beside another planet or nebula. Pressing OK at warp drops out at once.
@@ -9,6 +10,9 @@ of warp somewhere new, beside another planet or nebula. Pressing OK at warp drop
 The planets and nebulae are made up by the program, each one different: gas giants (some
 with rings), Earth-like worlds with seas and clouds, deserts, ice worlds and lava worlds,
 each with a made-up name. The next one is made in the background while the ship is at warp.
+
+The bridge hums quietly, and the consoles chirp now and then; going to warp powers up with a
+rising sweep before the jump, and dropping out winds down again.
 """
 
 import math
@@ -31,9 +35,12 @@ AUTO_WARP_MINUTES = (3, 7)      # at impulse, it goes to warp by itself after be
 WARP_SECONDS = (12, 30)         # and stays at warp for between these many seconds
 
 W, H = scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT
-CX, CY = W / 2, H / 2
-STARS = 700
-FOCAL = 700                     # how far the stars are spread: bigger looks more zoomed in
+VIEW = pygame.Rect(150, 64, 1620, 800)     # the screen itself, inside its frame
+CORNER = 46                     # how round its corners are
+BEZEL = 30                      # how wide the metal frame round it is
+CX, CY = VIEW.center
+STARS = 650
+FOCAL = 640                     # how far the stars are spread: bigger looks more zoomed in
 IMPULSE_SPEED = 0.025           # how fast the stars come towards you, in their units a second...
 WARP_SPEED = 2.2                # ...and at warp
 ENGAGE_SECONDS = 1.6            # the stars stretch for this long before the jump to warp
@@ -43,6 +50,11 @@ ORANGE = (255, 153, 0)
 PEACH = (255, 160, 90)
 LILAC = (204, 153, 255)
 ICE_BLUE = (153, 204, 255)
+BUTTERSCOTCH = (255, 204, 102)
+BLUE = (132, 132, 255)
+AMBER_LIGHT = (255, 170, 60)    # the running lights at impulse...
+BLUE_LIGHT = (110, 175, 255)    # ...and at warp
+CHIRP_SECONDS = (5, 16)         # the consoles chirp every so often, between these many seconds apart
 
 
 ##==================================================================
@@ -59,40 +71,66 @@ def loopNoise(seconds, low, high, rng):
     return noise / np.max(np.abs(noise))
 
 
-# The deep throb of the engines, to play round and round (louder at warp)
+# The low hum of the bridge: the engines far below, a slow swell, and the hiss of the air,
+# to play round and round (louder at warp)
 def engineHum(rng):
-    seconds = 4.0
+    seconds = 8.0
     t = synth.times(seconds)
-    hum = sum(a * np.sin(2 * np.pi * f * t) for f, a in ((55, 1.0), (82.5, 0.4), (110, 0.5), (165, 0.15)))
-    hum *= 0.8 + 0.2 * np.sin(2 * np.pi * 0.5 * t)
-    return hum + 0.5 * loopNoise(seconds, 30, 300, rng)
+    hum = sum(a * np.sin(2 * np.pi * f * t) for f, a in ((50, 1.0), (75, 0.35), (100, 0.55), (150, 0.2), (200, 0.08)))
+    hum *= 0.82 + 0.18 * np.sin(2 * np.pi * 0.25 * t)
+    rumble = loopNoise(seconds, 35, 160, rng)
+    air = loopNoise(seconds, 2000, 7000, rng)
+    return hum + 0.45 * rumble + 0.05 * air
 
 
-# Going to warp: a rising rush, a deep boom at the jump, and a bright shimmer after it
+# A console chirping: two to four quick, bright notes
+def chirp(rng):
+    notes = rng.choice([1046.5, 1174.7, 1318.5, 1568.0, 1760.0, 2093.0], size=rng.integers(2, 5))
+    length = 0.075
+    sound = np.zeros(int(synth.SAMPLE_RATE * (length * len(notes) + 0.1)))
+    t = synth.times(length)
+    for i, f in enumerate(notes):
+        note = np.sin(2 * np.pi * f * t + 0.6 * np.sin(2 * np.pi * f * 2 * t)) * np.minimum(1, t / 0.004) * np.exp(-t / 0.035)
+        synth.mixIn(sound, note, i * length)
+    return sound
+
+
+# Going to warp: the engines power up in a rising sweep, then the jump: a deep boom, a
+# crack of noise, and a bright shimmer that fades
 def engage(rng):
-    seconds = 4.0
+    seconds = 4.2
     t = synth.times(seconds)
-    rush = synth.noise(seconds, rng)
     rising = np.clip(t / ENGAGE_SECONDS, 0, 1)
-    rush = synth.smooth(rush, 30) * (1 - rising) + synth.smooth(rush, 4) * rising
-    rush *= rising ** 2 * np.exp(-np.clip(t - ENGAGE_SECONDS, 0, None) / 0.6)
+    before = t < ENGAGE_SECONDS
+    pitch = 140 * (900 / 140) ** (rising ** 1.6)
+    phase = 2 * np.pi * np.cumsum(pitch) / synth.SAMPLE_RATE
+    sweep = (np.sin(phase) + 0.5 * np.sin(2 * phase) + 0.25 * np.sin(3 * phase)) * rising ** 1.5 * before
+    sweep *= 0.75 + 0.25 * np.sin(2 * np.pi * (6 + 20 * rising) * t)
+
+    rush = synth.noise(seconds, rng)
+    rush = synth.smooth(rush, 30) * (1 - rising) + synth.smooth(rush, 3) * rising
+    rush *= rising ** 2 * np.exp(-np.clip(t - ENGAGE_SECONDS, 0, None) / 0.35)
 
     after = np.clip(t - ENGAGE_SECONDS, 0, None)
-    boom = np.sin(2 * np.pi * (60 * after - 12 * after ** 2)) * np.exp(-after / 0.5) * (t >= ENGAGE_SECONDS)
-    shimmer = sum(np.sin(2 * np.pi * f * t) for f in (880, 1108.7, 1318.5, 1760)) / 4
-    shimmer *= np.exp(-after / 0.9) * (t >= ENGAGE_SECONDS) * (0.6 + 0.4 * np.sin(2 * np.pi * 7 * t))
-    return rush * 0.8 + boom * 1.2 + shimmer * 0.35
+    jumped = t >= ENGAGE_SECONDS
+    boom = np.sin(2 * np.pi * (55 * after - 10 * after ** 2)) * np.exp(-after / 0.6) * jumped
+    crack = synth.noise(seconds, rng) * np.exp(-after / 0.08) * jumped
+    shimmer = sum(np.sin(2 * np.pi * f * t) for f in (1318.5, 1760, 2217.5, 2637)) / 4
+    shimmer *= np.exp(-after / 1.0) * jumped * (0.6 + 0.4 * np.sin(2 * np.pi * 9 * t))
+    return sweep * 0.55 + rush * 0.6 + boom * 1.3 + crack * 0.5 + shimmer * 0.3
 
 
-# Dropping out of warp: a falling rush
+# Dropping out of warp: the engines wind down in a falling sweep, with a rush of air
 def dropOut(rng):
     seconds = 1.8
     t = synth.times(seconds)
+    falling = np.clip(t / 1.2, 0, 1)
+    pitch = 900 * (120 / 900) ** (falling ** 0.7)
+    phase = 2 * np.pi * np.cumsum(pitch) / synth.SAMPLE_RATE
+    sweep = (np.sin(phase) + 0.4 * np.sin(2 * phase)) * np.exp(-t / 0.7)
     rush = synth.noise(seconds, rng)
-    falling = np.clip(t / seconds, 0, 1)
-    rush = synth.smooth(rush, 4) * (1 - falling) + synth.smooth(rush, 40) * falling
-    tone = np.sin(2 * np.pi * np.cumsum(500 - 380 * falling) / synth.SAMPLE_RATE)
-    return (rush + 0.3 * tone) * np.exp(-t / 0.5)
+    rush = synth.smooth(rush, 3) * (1 - falling) + synth.smooth(rush, 40) * falling
+    return sweep * 0.6 + rush * np.exp(-t / 0.4) * 0.8
 
 
 def makeSounds():
@@ -102,8 +140,11 @@ def makeSounds():
     hum = synth.makeSound(engineHum(rng), SOUND_VOLUME)
     if hum is None:
         return None
-    return {"hum": hum, "engage": synth.makeSound(engage(rng), SOUND_VOLUME),
-            "drop": synth.makeSound(dropOut(rng), SOUND_VOLUME * 0.8)}
+    sounds = {"hum": hum, "engage": synth.makeSound(engage(rng), SOUND_VOLUME),
+              "drop": synth.makeSound(dropOut(rng), SOUND_VOLUME * 0.8)}
+    for i in range(6):
+        sounds[f"chirp{i}"] = synth.makeSound(chirp(rng), SOUND_VOLUME * 0.35)
+    return sounds
 
 
 ##==================================================================
@@ -276,6 +317,95 @@ def drawSky():
     return surface
 
 
+# How far each point is outside the screen's rounded rectangle (minus: inside it), and which
+# way is outwards from it
+def outsideScreen(xx, yy):
+    cx, cy = VIEW.center
+    qx = np.abs(xx - cx) - (VIEW.width / 2 - CORNER)
+    qy = np.abs(yy - cy) - (VIEW.height / 2 - CORNER)
+    ox, oy = np.maximum(qx, 0), np.maximum(qy, 0)
+    distance = np.sqrt(ox * ox + oy * oy) + np.minimum(np.maximum(qx, qy), 0) - CORNER
+    length = np.maximum(np.sqrt(ox * ox + oy * oy), 1e-3)
+    nx = np.where(ox > 0, ox / length, np.where(qx > qy, 1.0, 0.0)) * np.sign(xx - cx)
+    ny = np.where(oy > 0, oy / length, np.where(qy >= qx, 1.0, 0.0)) * np.sign(yy - cy)
+    return distance, nx, ny
+
+
+# The bulkhead round the screen: warm grey wall panels, the rounded metal bezel with a dark
+# lip where it meets the screen, and the console below. See-through over the screen itself.
+def drawFrame():
+    rng = np.random.default_rng(8)
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    distance, nx, ny = outsideScreen(xx, yy)
+
+    # the wall: panels with seams, lit from above
+    wall = np.array([92, 84, 76], dtype=np.float32) * (1.05 - 0.4 * yy / H)[..., None]
+    seams = ((xx % 214) < 3) | (np.abs(yy - 30) < 2)
+    wall[seams] *= 0.55
+    wall *= (1 + rng.normal(0, 0.025, (H, W)))[..., None]
+
+    # the bezel: a rounded metal rim, lit from above, and a dark lip at its inner edge
+    t = np.clip(distance / BEZEL, 0, 1)
+    slope = np.cos(np.pi * t)                       # facing in at the inside, out at the outside
+    lit = 0.5 - 0.42 * slope * ny + 0.1 * np.sin(np.pi * t)
+    bezel = np.array([120, 118, 122], dtype=np.float32) * lit[..., None]
+    bezel += (np.exp(-((t - 0.3) / 0.05) ** 2) * np.clip(-ny, 0, 1) * 90)[..., None]
+    lip = np.clip(1 - distance / 6, 0, 1)
+    bezel *= (1 - 0.85 * lip)[..., None]
+
+    inBezel = (distance < BEZEL)[..., None]
+    rgb = np.where(inBezel, bezel, wall)
+
+    # a shadow on the wall round the bezel
+    rgb *= (1 - 0.45 * np.exp(-np.clip(distance - BEZEL, 0, None) / 14) * (distance > BEZEL))[..., None]
+
+    # the console below
+    console = yy > VIEW.bottom + BEZEL + 30
+    rgb[console] = np.array([34, 33, 38], dtype=np.float32) * (1 + rng.normal(0, 0.02, int(console.sum())))[:, None]
+    top = int(VIEW.bottom + BEZEL + 30)
+    rgb[top:top + 3] = (110, 108, 112)
+
+    alpha = np.clip(distance + 0.5, 0, 1) * 255
+    rgba = np.dstack((np.clip(rgb, 0, 255), alpha)).astype(np.uint8)
+    frame = pygame.image.frombuffer(rgba.tobytes(), (W, H), "RGBA").convert_alpha()
+
+    # the console's fixed LCARS panels
+    font = lcarsFont(22)
+    y = top + 24
+    pygame.draw.rect(frame, ORANGE, (40, y, 210, 58), border_top_left_radius=29, border_bottom_left_radius=29)
+    pygame.draw.rect(frame, LILAC, (W - 250, y, 210, 58), border_top_right_radius=29, border_bottom_right_radius=29)
+    for i, (label, colour) in enumerate((("HELM", BUTTERSCOTCH), ("OPS", PEACH), ("NAV", BLUE), ("SCI", ICE_BLUE))):
+        x = W - 760 + i * 122
+        pygame.draw.rect(frame, colour, (x, y - 4, 112, 30))
+        image = font.render(label, True, (0, 0, 0))
+        frame.blit(image, (x + 6, y - 2))
+
+    # a row of thin LCARS bars along the bottom of the console
+    x, y = 40, top + 104
+    for width, colour in ((300, PEACH), (90, LILAC), (520, BUTTERSCOTCH), (60, ORANGE), (240, BLUE), (420, ICE_BLUE),
+                          (W - 40 - 40 - 300 - 90 - 520 - 60 - 240 - 420 - 6 * 10, PEACH)):
+        pygame.draw.rect(frame, colour, (x, y, width, 18), border_radius=9 if colour in (PEACH,) else 0)
+        x += width + 10
+    return frame, top
+
+
+# A running light at each brightness, in a colour: a little lit capsule with a soft glow round it
+def lightPictures(colour, steps=8):
+    pictures = []
+    for step in range(steps):
+        b = step / (steps - 1)
+        w, h = 34, 18
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        d = np.sqrt(((xx - w / 2) / 9) ** 2 + ((yy - h / 2) / 3.2) ** 2)
+        core = np.clip(1.5 - d, 0, 1)
+        glow = np.exp(-d * 0.9) * 0.6
+        level = np.clip(core * (0.25 + 0.75 * b) + glow * b, 0, 1)
+        rgb = np.array(colour, dtype=np.float32) * level[..., None] + 255 * (core * b * 0.5)[..., None]
+        rgba = np.dstack((np.clip(rgb, 0, 255), np.clip(level * 255 + core * 120, 0, 255))).astype(np.uint8)
+        pictures.append(pygame.image.frombuffer(rgba.tobytes(), (w, h), "RGBA").convert_alpha())
+    return pictures
+
+
 def lcarsFont(size):
     path = os.path.join(fonts.FONT_FOLDER, fonts.FONT_FILE_BOLD)
     try:
@@ -291,6 +421,16 @@ def lcarsFont(size):
 class ViewscreenScreen(scr.Screen):
 
     name = "VIEWSCREEN"
+    hasSound = True
+
+    def soundList(self):
+        return [(s, 1.0) for s in (self.sounds or {}).values()]
+
+    def setSound(self, on):
+        if on:
+            self.startHum()
+        else:
+            self.leave()
 
     def start(self):
         rng = np.random.default_rng()
@@ -300,8 +440,23 @@ class ViewscreenScreen(scr.Screen):
         self.tint = rng.choice(np.array([(1, 1, 1), (0.8, 0.88, 1), (1, 0.92, 0.8)]), STARS)
         self.sky = drawSky().convert()
         self.font = lcarsFont(30)
-        self.flashSurface = pygame.Surface((W, H))
+        self.smallFont = lcarsFont(24)
+        self.flashSurface = pygame.Surface(VIEW.size)
         self.flashSurface.fill((200, 220, 255))
+        self.frame, self.consoleTop = drawFrame()
+        self.framePieces = [pygame.Rect(0, 0, W, VIEW.top + CORNER), pygame.Rect(0, VIEW.bottom - CORNER, W, H - VIEW.bottom + CORNER),
+                            pygame.Rect(0, VIEW.top + CORNER, VIEW.left + 1, VIEW.height - 2 * CORNER),
+                            pygame.Rect(VIEW.right - 1, VIEW.top + CORNER, W - VIEW.right + 1, VIEW.height - 2 * CORNER)]
+        self.lights = {"amber": lightPictures(AMBER_LIGHT), "blue": lightPictures(BLUE_LIGHT)}
+        self.sideLights_ = {k: [pygame.transform.rotate(p, 90) for p in v] for k, v in self.lights.items()}   # upright, for the sides
+        across = range(VIEW.left + 70, VIEW.right - 50, 44)
+        self.topLights = [(x, VIEW.top - BEZEL // 2) for x in across]
+        self.bottomLights = [(x, VIEW.bottom + BEZEL // 2) for x in across]
+        down = range(VIEW.top + 80, VIEW.bottom - 60, 60)
+        self.sideLights = [(VIEW.left - BEZEL // 2, y) for y in down] + [(VIEW.right + BEZEL // 2, y) for y in down]
+        self.readings = []              # the console's changing numbers, and when they last changed
+        self.readingsAt = 0
+        self.nextChirp = pygame.time.get_ticks() + 4000
 
         self.state = "impulse"
         self.stateAt = pygame.time.get_ticks()
@@ -329,11 +484,11 @@ class ViewscreenScreen(scr.Screen):
         if kind == "planet":
             h, w = array.shape[:2]
             image = pygame.image.frombuffer(array.tobytes(), (w, h), "RGBA").convert_alpha()
-            x = random.choice([random.uniform(0.15, 0.35), random.uniform(0.65, 0.85)]) * W
-            y = random.uniform(0.3, 0.7) * H
+            x = VIEW.left + random.choice([random.uniform(0.18, 0.35), random.uniform(0.65, 0.82)]) * VIEW.width
+            y = VIEW.top + random.uniform(0.32, 0.68) * VIEW.height
         else:
-            image = pygame.transform.smoothscale(pygame.surfarray.make_surface(array.transpose(1, 0, 2)), (W, H))
-            x, y = W / 2, H / 2
+            image = pygame.transform.smoothscale(pygame.surfarray.make_surface(array.transpose(1, 0, 2)), VIEW.size)
+            x, y = CX, CY
         self.destination = dict(kind=kind, image=image, name=name, x=x, y=y,
                                 drift=(random.uniform(-4, 4), random.uniform(-2, 2)))
 
@@ -346,7 +501,7 @@ class ViewscreenScreen(scr.Screen):
 
 
     def play(self, name):
-        if self.sounds and self.sounds.get(name):
+        if self.soundOn and self.sounds and self.sounds.get(name):
             self.sounds[name].play()
 
 
@@ -363,7 +518,11 @@ class ViewscreenScreen(scr.Screen):
 
     def enter(self):
         self.lastTicks = pygame.time.get_ticks()
-        if self.sounds:
+        self.startHum()
+
+
+    def startHum(self):
+        if self.sounds and self.soundOn and not self.humChannel:
             self.humChannel = self.sounds["hum"].play(loops=-1)
 
 
@@ -433,6 +592,11 @@ class ViewscreenScreen(scr.Screen):
             self.destination["x"] += dx * dt
             self.destination["y"] += dy * dt
 
+        # the consoles chirp now and then
+        if ticks >= self.nextChirp:
+            self.play(f"chirp{random.randrange(6)}")
+            self.nextChirp = ticks + random.uniform(*CHIRP_SECONDS) * 1000
+
         if self.humChannel:
             loud = {"impulse": 0.25, "engaging": 0.25 + 0.6 * min(1, into / ENGAGE_SECONDS), "warp": 0.85,
                     "dropping": 0.85 - 0.6 * min(1, into / DROP_SECONDS)}[self.state]
@@ -465,15 +629,16 @@ class ViewscreenScreen(scr.Screen):
         else:
             calm = 0.0
 
-        surface.fill((0, 0, 0))
+        surface.set_clip(VIEW)
+        surface.fill((0, 0, 0), VIEW)
         if calm > 0:
             self.sky.set_alpha(int(255 * calm) if calm < 1 else None)     # see-through only while fading: it is slower
-            surface.blit(self.sky, (0, 0))
+            surface.blit(self.sky, VIEW.topleft, VIEW)
             d = self.destination
             if d:
                 if d["kind"] == "nebula":
                     d["image"].set_alpha(int(255 * calm))
-                    surface.blit(d["image"], (0, 0), special_flags=pygame.BLEND_RGB_ADD)
+                    surface.blit(d["image"], VIEW.topleft, special_flags=pygame.BLEND_RGB_ADD)
                 else:
                     image = d["image"]
                     image.set_alpha(int(255 * calm))
@@ -483,14 +648,51 @@ class ViewscreenScreen(scr.Screen):
 
         if self.flash > 0:
             self.flashSurface.set_alpha(int(200 * self.flash))
-            surface.blit(self.flashSurface, (0, 0))
+            surface.blit(self.flashSurface, VIEW.topleft)
+        surface.set_clip(None)
 
-        # an LCARS label in the corner
-        pygame.draw.rect(surface, ORANGE, (40, H - 74, 26, 40), border_top_left_radius=20, border_bottom_left_radius=20)
+        for piece in self.framePieces:
+            surface.blit(self.frame, piece.topleft, piece)
+        self.drawLights(surface, ticks / 1000)
+        self.drawConsole(surface, ticks)
+
+
+    # The running lights: along the top and the bottom of the frame they chase one way and
+    # the other, faster and blue at warp; down the sides they glow and fade slowly
+    def drawLights(self, surface, t):
+        warp = self.state in ("warp", "engaging")
+        pictures = self.lights["blue" if warp else "amber"]
+        steps = len(pictures) - 1
+        speed = 30 if warp else 9
+        tail = 6
+        for row, direction in ((self.topLights, 1), (self.bottomLights, -1)):
+            count = len(row)
+            head = (t * speed) % (count + tail)
+            for i, (x, y) in enumerate(row):
+                place = i if direction > 0 else count - 1 - i
+                behind = head - place
+                b = 1 - behind / tail if 0 <= behind < tail else 0.12
+                picture = pictures[int(b * steps)]
+                surface.blit(picture, picture.get_rect(center=(x, y)))
+        for i, (x, y) in enumerate(self.sideLights):
+            b = 0.35 + 0.35 * math.sin(t * 1.3 + i * 0.5)
+            picture = self.sideLights_[("blue" if warp else "amber")][int(b * steps)]
+            surface.blit(picture, picture.get_rect(center=(x, y)))
+
+
+    # The console below the screen: what the ship is doing, and some busy numbers
+    def drawConsole(self, surface, ticks):
+        y = self.consoleTop + 24
         width = self.labelImage.get_width() + 40
-        pygame.draw.rect(surface, PEACH, (72, H - 74, width, 40))
-        surface.blit(self.labelImage, (92, H - 72))
-        pygame.draw.rect(surface, LILAC, (72 + width + 6, H - 74, 40, 40), border_top_right_radius=20, border_bottom_right_radius=20)
+        pygame.draw.rect(surface, PEACH, (262, y, width, 58))
+        surface.blit(self.labelImage, (282, y + 10))
+
+        if ticks - self.readingsAt > 700 or not self.readings:
+            self.readingsAt = ticks
+            self.readings = [self.smallFont.render(f"{random.randint(0, 9999):04d}", True, colour)
+                             for colour in (BUTTERSCOTCH, PEACH, BLUE, ICE_BLUE)]
+        for i, image in enumerate(self.readings):
+            surface.blit(image, (W - 760 + i * 122 + 6, y + 30))
 
 
     # Each star as a dot, or a streak from where it is to where it was a moment ago

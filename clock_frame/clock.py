@@ -11,8 +11,8 @@ at half past, three at a quarter to, and all four on the hour, followed by a dee
 striking the hour. The bells are made from their tones when the program starts, so there
 are no sound files. While it is shown it also ticks, gently.
 
-The middle (OK) button, or Enter, goes round: chimes and ticking, chimes only, ticking
-only, and silent. Holding it down (or Delete)
+The SOUND button turns all its sound off and on, as on every screen. The OK button (or
+Enter) goes round: chimes and ticking, chimes only, and ticking only. Holding OK down (or Delete)
 plays the last chime again, like the repeat on an old clock. Between QUIET_FROM and
 QUIET_UNTIL it neither ticks nor chimes.
 
@@ -35,8 +35,8 @@ import screens as scr
 
 CHIME = True                    # False: a silent clock
 CHIME_WHEN_HIDDEN = True        # True: chime even while another screen is shown (the tick is only heard on this one)
-CHIME_VOLUME = 0.6              # 0 to 1
-TICK_VOLUME = 0.12              # 0 to 1
+CHIME_VOLUME = 0.6              # 0 to 1 (the SOUND button sets it lower, or off)
+TICK_LOUDNESS = 0.25            # the tick is this much of the chimes' loudness: 12 dB quieter
 STRIKE_HOURS = True             # after the hour's chime, strike the hour (once for one o'clock...)
 QUIET_FROM = 0                  # no ticks or chimes from this hour (0 is midnight)...
 QUIET_UNTIL = 9                 # ...until this one, so the 9 o'clock chime is the first of the day
@@ -237,8 +237,8 @@ def makeChimes():
             chimes[quarter] = makeSound(mix)
 
         strike = makeSound(bellStroke(STRIKE_NOTE, 7.0, decayScale=1.8))
-        ticks = [makeSound(tickStroke(1.0, 0.006, 0.55), TICK_VOLUME),
-                 makeSound(tickStroke(0.9, 0.009, 0.4), TICK_VOLUME)]
+        ticks = [makeSound(tickStroke(1.0, 0.006, 0.55), CHIME_VOLUME * TICK_LOUDNESS),
+                 makeSound(tickStroke(0.9, 0.009, 0.4), CHIME_VOLUME * TICK_LOUDNESS)]
         return chimes, strike, ticks
 
     except pygame.error as exc:
@@ -709,17 +709,18 @@ def withWindows(face, now):
 ## THE SCREEN
 ##==================================================================
 
-# What the OK button goes round: (chimes, ticking, what is shown under the date)
+# What the OK button goes round: (chimes, ticking, what is shown in the corner)
 SOUND_CHOICES = [
     (True, True, "Chimes and ticking"),
     (True, False, "Chimes only"),
     (False, True, "Ticking only"),
-    (False, False, "Sound off"),
 ]
+
 
 class ClockScreen(scr.Screen):
 
     name = "CLOCK"
+    hasSound = True
 
     def start(self):
         self.wood = drawBackground()
@@ -740,7 +741,7 @@ class ClockScreen(scr.Screen):
         self.chimes, self.strike, self.ticks = makeChimes() if CHIME else (None, None, None)
         self.lastQuarter = self.quarterKey(datetime.datetime.now())    # no chime at the start
         self.strikesDue = []            # pygame ticks at which the hour is still to be struck
-        self.choice = 0                 # which of SOUND_CHOICES, changed with the OK button
+        self.choice = 0                 # which of SOUND_CHOICES, changed with the OK button (the SOUND button turns off both)
         self.lastSecond = None          # the second last ticked
         self.status = None              # the words under the date, and their picture
         self.statusImage = None
@@ -762,6 +763,14 @@ class ClockScreen(scr.Screen):
         for sound in list((self.chimes or {}).values()) + [self.strike] + (self.ticks or []):
             if sound:
                 sound.stop()
+
+
+    def soundList(self):
+        return [(s, 1.0) for s in list((self.chimes or {}).values()) + [self.strike] + (self.ticks or [])]
+
+    def setSound(self, on):
+        if not on:
+            self.silence()
 
 
     @property
@@ -795,10 +804,12 @@ class ClockScreen(scr.Screen):
         return now.hour >= QUIET_FROM or now.hour < QUIET_UNTIL
 
 
-    # The words in the corner: what the OK button has chosen, and at night that the clock is silent
+    # The words in the corner: whether the sound and the chimes are on, and at night that the clock is silent
     def statusFor(self, now):
         if not self.chimes:
             return None
+        if not self.soundOn:
+            return "Sound off"
         words = SOUND_CHOICES[self.choice][2]
         if self.quietTime(now):
             words += f" \u2013 silent until {QUIET_UNTIL % 12 or 12}{'AM' if QUIET_UNTIL < 12 else 'PM'}"
@@ -834,7 +845,7 @@ class ClockScreen(scr.Screen):
         key = self.quarterKey(now)
         if key is not None and key != self.lastQuarter:
             self.lastQuarter = key
-            if self.chimesOn and not quiet and (visible or CHIME_WHEN_HIDDEN):
+            if self.soundOn and self.chimesOn and not quiet and (visible or CHIME_WHEN_HIDDEN):
                 self.chime(now.hour, now.minute // 15)
 
         ticks = pygame.time.get_ticks()
@@ -848,7 +859,7 @@ class ClockScreen(scr.Screen):
         # tick, tock, as the seconds hand moves
         if now.second != self.lastSecond:
             self.lastSecond = now.second
-            if self.tickOn and not quiet and self.ticks:
+            if self.soundOn and self.tickOn and not quiet and self.ticks:
                 self.ticks[now.second % 2].play()
 
         status = self.statusFor(now)
