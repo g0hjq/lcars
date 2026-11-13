@@ -29,7 +29,7 @@ from clock_frame.clock import ClockScreen
 ##==================================================================
 
 SOUND = True
-SOUND_VOLUME = 0.15             # 0 to 1
+SOUND_VOLUME = 0.075            # 0 to 1
 
 W, H = scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT
 SAND_TOP = 880                  # the top of the sand

@@ -32,7 +32,16 @@ the Pi's GPIO pins or the arrow keys:
   with the OK button).
 
 The sounds are all made by the program as it starts (see `synth.py`), so there are no sound
-files apart from the biomonitor's heartbeat.
+files apart from the biomonitor's heartbeat. How loud each one is, from 0 to 1, is set at the
+top of its screen's file (and by the Pi's own volume):
+
+| Sound | Setting |
+| --- | --- |
+| LCARS alerts | `VOLUME` in `lcars_frame/lcars_sound.py` (0.9) |
+| Clock chimes and tick | `CHIME_VOLUME` (0.6) and `TICK_VOLUME` (0.12) in `clock_frame/clock.py` |
+| Departures board flaps | `SOUND_VOLUME` in `departures_frame/departures.py` (0.1) |
+| Aquarium bubbles | `SOUND_VOLUME` in `aquarium_frame/aquarium.py` (0.075) |
+| Viewscreen engines and warp | `SOUND_VOLUME` in `viewscreen_frame/viewscreen.py` (0.5) |
 
 Each screen is in its own folder, and new ones can be added (see [Adding a screen](#adding-a-screen)).
 

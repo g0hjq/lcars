@@ -31,7 +31,7 @@ from lcars_frame import lookups as lk
 ##==================================================================
 
 SOUND = True
-SOUND_VOLUME = 0.5              # 0 to 1
+SOUND_VOLUME = 0.1              # 0 to 1
 
 # The columns: heading, and how many letters wide
 COLUMNS = [("FLIGHT", 7), ("FROM", 11), ("TO", 11), ("DISTANCE", 8), ("HEIGHT", 6), ("STATUS", 10)]
