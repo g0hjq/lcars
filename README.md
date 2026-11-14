@@ -1,7 +1,7 @@
 # LCARS display
 
 A Star Trek LCARS-style display for a Raspberry Pi, written in Python with pygame. It fills
-a 1920×1080 screen and shows one of eight screens at a time, changed with a push button on
+a 1920×1080 screen and shows one of seven screens at a time, changed with a push button on
 the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
 
 - **LCARS**: an ambient screen that sits there looking busy. It shows a clock, the weather
@@ -41,7 +41,7 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
 - **Departures board**: an old split-flap board, like a station's or an airport's, listing the
   aircraft your receiver can hear: flight, from, to, distance, height and what it is doing.
   It is brought up to date every 10 seconds (`DEPARTURES_UPDATE_SECONDS` in `settings.py`),
-  when the letters clatter round to anything that has changed, and you can hear them.
+  when the letters clatter round (silently) to anything that has changed.
 - **Aquarium**: a tropical fish tank, with fish of several kinds, a school of neon tetras,
   swaying plants, bubbles and sunlight rippling on the sand. The OK button feeds the fish. At
   night (the clock's quiet hours) the light goes down and the fish rest.
@@ -50,8 +50,6 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
   ahead; the OK button (or a few minutes' wait) powers up and goes to warp, the lights turning
   blue, and it drops out later somewhere new: each planet and nebula is made up by the
   program, with a made-up name. The bridge hums, and the consoles chirp now and then.
-- **Lava lamp**: a big lava lamp glowing in a dark room, whose colours change every hour (or
-  with the OK button).
 
 The sounds are all made by the program as it starts (see `synth.py`), so there are no sound
 files apart from the biomonitor's heartbeat. How loud each one is, from 0 to 1, is set in
@@ -64,7 +62,6 @@ it turns down only the ticks (and holding it down turns the chimes off or on).
 | LCARS alerts | `LCARS_SOUND_VOLUME` (0.9) |
 | Clock chimes | `CLOCK_CHIME_VOLUME` (0.6), whatever the SOUND button is set to; the Nixie pips are `NIXIE_PIP_LOUDNESS` (0.35) of that |
 | Clock ticks (and the flip clock's clacks) | `CLOCK_TICK_LOUDNESS` (0.25) of the chimes' loudness at HIGH, 12 dB quieter; the SOUND button turns them down from there (`CLOCK_TICK_VOLUMES`) |
-| Departures board flaps | `DEPARTURES_SOUND_VOLUME` (0.2) |
 | Aquarium bubbles | `AQUARIUM_SOUND_VOLUME` (0.075) |
 | Viewscreen hum, chirps and warp | `VIEWSCREEN_SOUND_VOLUME` (0.5) |
 
@@ -108,8 +105,6 @@ filled in for flights to or from your own airport.*
 ![The viewscreen](docs/viewscreen.jpg)
 *The viewscreen at impulse, near one of its made-up planets.*
 
-![The lava lamp](docs/lavalamp.jpg)
-*The lava lamp, in one of its eight pairs of colours.*
 
 ## What you need
 
@@ -252,7 +247,6 @@ What a brief press of OK does on each screen:
 - Clock: the next face (brass, railway, deco, Nixie, flip)
 - Aquarium: feeds the fish
 - Viewscreen: goes to warp, or drops out of it
-- Lava lamp: new colours
 
 ## Files
 
@@ -274,7 +268,6 @@ clock_frame/             the clock screen (clock.py), its five faces, and what t
 departures_frame/        the split-flap departures board
 aquarium_frame/          the fish tank
 viewscreen_frame/        the bridge viewscreen, its warp jumps and its made-up planets
-lavalamp_frame/          the lava lamp
 synth.py                 makes sounds from tones and noise, for the screens
 ```
 

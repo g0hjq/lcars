@@ -9,7 +9,6 @@
 #   departures_frame/ a split-flap board of the aircraft overhead
 #   aquarium_frame/   a fish tank
 #   viewscreen_frame/ the view from the bridge, with warp jumps to new planets
-#   lavalamp_frame/   a lava lamp
 #   synth.py          makes the sounds the screens play from tones and noise
 #   fonts.py          the fonts every screen draws its text in (the font files are in fonts/)
 #
@@ -28,7 +27,6 @@ from clock_frame.clock import ClockScreen
 from departures_frame.departures import DeparturesScreen
 from aquarium_frame.aquarium import AquariumScreen
 from viewscreen_frame.viewscreen import ViewscreenScreen
-from lavalamp_frame.lavalamp import LavaLampScreen
 
 
 # Its settings are in settings.py (next to lcars.py)
@@ -56,7 +54,6 @@ def main():
         ClockScreen(),
         AquariumScreen(),
         ViewscreenScreen(),
-        LavaLampScreen(),
     ])
     switcher.start()
     buttons = gb.startButtons()

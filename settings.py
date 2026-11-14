@@ -25,7 +25,6 @@ Every setting of the program, in one place, a section for each part of it:
     CLOCK: FLIP FACE                                FLIP_...
     AQUARIUM                                        AQUARIUM_...
     VIEWSCREEN                                      VIEWSCREEN_...
-    LAVA LAMP                                       LAVALAMP_...
     YOUR OWN SETTINGS                               (from my_settings.py, at the end)
 
 Each setting's name starts with its section's, so search for, say, "AQUARIUM_" to find
@@ -362,9 +361,6 @@ CALENDAR_DEBUG = False       # print how many events, and how many pages, each f
 #
 # The split-flap board of the aircraft overhead.
 ##==================================================================
-
-DEPARTURES_SOUND = True
-DEPARTURES_SOUND_VOLUME = 0.2              # 0 to 1
 
 # The columns: heading, and how many letters wide
 DEPARTURES_COLUMNS = [("FLIGHT", 7), ("FROM", 11), ("TO", 11), ("DISTANCE", 8), ("HEIGHT", 6), ("STATUS", 10)]
@@ -793,36 +789,6 @@ VIEWSCREEN_BLUE = (132, 132, 255)
 VIEWSCREEN_AMBER_LIGHT = (255, 170, 60)    # the running lights at impulse...
 VIEWSCREEN_BLUE_LIGHT = (110, 175, 255)    # ...and at warp
 VIEWSCREEN_CHIRP_SECONDS = (5, 16)         # the consoles chirp every so often, between these many seconds apart
-
-
-##==================================================================
-## LAVA LAMP (lavalamp_frame/lavalamp.py)
-#
-# The lamp's shape (in pixels), and its colours, which change every hour.
-##==================================================================
-
-LAVALAMP_FADE_SECONDS = 6                # the colours take this long to change
-LAVALAMP_GLOW_SECONDS = 0.5              # the glow on the wall follows them in steps this far apart
-LAVALAMP_BLOBS = 7
-LAVALAMP_SCALE = 3                       # the wax is worked out at 1/LAVALAMP_SCALE of the size
-
-# (liquid, wax) colours, one pair for each hour in turn
-LAVALAMP_PALETTES = [
-    ((236, 196, 40), (226, 40, 26)),
-    ((34, 64, 176), (238, 238, 248)),
-    ((96, 24, 136), (255, 124, 24)),
-    ((40, 140, 64), (250, 228, 64)),
-    ((206, 214, 226), (255, 72, 150)),
-    ((24, 118, 140), (255, 64, 190)),
-    ((176, 22, 32), (255, 206, 60)),
-    ((22, 22, 44), (84, 228, 255)),
-]
-
-# The shape of the lamp: (y, half the width) down its outline. The glass is between LAVALAMP_GLASS_TOP and LAVALAMP_GLASS_BOTTOM.
-LAVALAMP_CAP = [(40, 46), (150, 76)]
-LAVALAMP_GLASS_TOP, LAVALAMP_GLASS_BOTTOM = 150, 760
-LAVALAMP_BASE = [(760, 128), (800, 112), (870, 104), (1000, 196), (1040, 212)]
-LAVALAMP_SHELF = 1040
 
 
 ##==================================================================

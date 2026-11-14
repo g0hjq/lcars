@@ -5,7 +5,7 @@ An old split-flap board, like a railway station's or an airport's, listing the a
 your ADS-B receiver can hear: the flight, where it is going from and to, how far away
 it is, its height and what it is doing. Each letter is a little flap that clatters round to the next
 letter when it changes, so a new aircraft, or one leaving the list, sets the whole board
-rattling. The time in the corner flips over each minute.
+rattling. The time in the corner flips over each minute. It makes no sound.
 
 The aircraft and their routes come from the LCARS screen, which already
 fetches them (see lcars_frame/aircraft.py and lookups.py), so this screen is given that
@@ -23,7 +23,6 @@ import numpy as np
 import pygame
 import fonts
 import screens as scr
-import synth
 from lcars_frame import lookups as lk
 
 ##==================================================================
@@ -32,8 +31,6 @@ from lcars_frame import lookups as lk
 
 # Its settings are in settings.py (next to lcars.py)
 from settings import (
-    DEPARTURES_SOUND as SOUND,
-    DEPARTURES_SOUND_VOLUME as SOUND_VOLUME,
     DEPARTURES_COLUMNS as COLUMNS,
     DEPARTURES_ROWS as ROWS,
     DEPARTURES_TILE_W as TILE_W,
@@ -56,36 +53,6 @@ from settings import (
     DEPARTURES_CLIMB_FPM as CLIMB_FPM,
     DEPARTURES_LOW_FT as LOW_FT,
 )
-
-
-##==================================================================
-## THE SOUND OF THE FLAPS
-##==================================================================
-
-# One flap hitting the stop: a sharp plastic click with a little ring
-def clack(rng):
-    t = synth.times(0.05)
-    click = synth.noise(0.05, rng)
-    click = click - synth.smooth(click, 6)                # take off the low rumble, leaving the snap
-    sound = click * np.exp(-t / 0.0025)
-    for f, decay, loudness in ((rng.uniform(2200, 3200), 0.006, 0.5), (rng.uniform(800, 1100), 0.01, 0.35)):
-        sound += loudness * np.sin(2 * np.pi * f * t) * np.exp(-t / decay)
-    return sound
-
-
-# A couple of seconds of flaps clattering, to play round and round while any are turning
-def makeRattle():
-    rng = np.random.default_rng(5)
-    length = 2.0
-    left = np.zeros(int(synth.SAMPLE_RATE * length))
-    right = np.zeros_like(left)
-    for _ in range(90):
-        sound = clack(rng) * rng.uniform(0.3, 1.0)
-        at = rng.uniform(0, length - 0.05)
-        pan = rng.uniform(0.2, 0.8)
-        synth.mixIn(left, sound * (1 - pan), at)
-        synth.mixIn(right, sound * pan, at)
-    return synth.makeSound(np.column_stack((left, right)), SOUND_VOLUME)
 
 
 ##==================================================================
@@ -294,10 +261,6 @@ def messageRow(text, colour):
 class DeparturesScreen(scr.Screen):
 
     name = "DEPARTURES"
-    hasSound = True
-
-    def soundList(self):
-        return [(self.rattle, 1.0)]
 
     # source is the LCARS screen, whose aircraft, routes and types are shown
     def __init__(self, source):
@@ -327,8 +290,6 @@ class DeparturesScreen(scr.Screen):
         self.firstSeen = {}             # icao -> when it was first seen, for the order of the rows
         self.lastRead = 0
         self.lastTicks = pygame.time.get_ticks()
-        self.rattle = makeRattle() if SOUND else None
-        self.rattleChannel = None
 
 
     # The x of each flap along a row, column by column
@@ -421,12 +382,6 @@ class DeparturesScreen(scr.Screen):
         self.lastTicks = pygame.time.get_ticks()
 
 
-    def leave(self):
-        if self.rattleChannel:
-            self.rattleChannel.stop()
-            self.rattleChannel = None
-
-
     def update(self, visible):
         if not visible:
             return
@@ -442,30 +397,9 @@ class DeparturesScreen(scr.Screen):
             self.setTargets()
         self.setClock()
 
-        turning = 0
         for flap in self.flaps:
-            if flap.turning:
-                if flap.update(dt):
-                    flap.draw(self.board, self.pictures)
-                if flap.wait <= 0:
-                    turning += 1
-
-        self.playRattle(turning)
-
-
-    # The clatter, louder the more flaps are turning, and fading away when they stop
-    def playRattle(self, turning):
-        if not self.rattle:
-            return
-
-        if turning and self.soundOn:
-            if self.rattleChannel is None or not self.rattleChannel.get_busy():
-                self.rattleChannel = self.rattle.play(loops=-1)
-            if self.rattleChannel:
-                self.rattleChannel.set_volume(min(1.0, 0.6 + turning / 50))
-        elif self.rattleChannel:
-            self.rattleChannel.fadeout(150)
-            self.rattleChannel = None
+            if flap.turning and flap.update(dt):
+                flap.draw(self.board, self.pictures)
 
 
     def draw(self, surface):
