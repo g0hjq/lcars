@@ -50,14 +50,17 @@ from .aircraft_data import AircraftType, Route
 
 ROUTE_URL = "https://api.adsbdb.com/v0/callsign/"
 MODEL_URL = "https://api.adsbdb.com/v0/aircraft/"
-FOUND_EXPIRY_SECS = 6 * 60 * 60     # a good answer is looked up again after this long
-MISSING_EXPIRY_SECS = 5 * 60        # ...and a missing one, after this long
-TIMEOUT_SECS = 10
-RETRY_EXPIRY_SECS = 30               # a lookup that couldn't reach the service is tried again after this long
-HOME_AIRPORT = "MAN"                # routes are only shown for flights to or from this airport (its code)
-LOOKUP_PAUSE_SECS = 0.5             # each lookup thread waits this long between lookups
-BACKOFF_SECS = 60                   # after a 429, all lookups stop for this long (or as long as the service says)...
-BACKOFF_MAX_SECS = 30 * 60          # ...doubling each time it happens again, up to this, until a lookup works
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    LOOKUP_FOUND_EXPIRY_SECS as FOUND_EXPIRY_SECS,
+    LOOKUP_MISSING_EXPIRY_SECS as MISSING_EXPIRY_SECS,
+    LOOKUP_TIMEOUT_SECS as TIMEOUT_SECS,
+    LOOKUP_RETRY_EXPIRY_SECS as RETRY_EXPIRY_SECS,
+    LOOKUP_HOME_AIRPORT as HOME_AIRPORT,
+    LOOKUP_PAUSE_SECS,
+    LOOKUP_BACKOFF_SECS as BACKOFF_SECS,
+    LOOKUP_BACKOFF_MAX_SECS as BACKOFF_MAX_SECS,
+)
 
 
 # Shared by both lookups, as they use the same service and it counts them together

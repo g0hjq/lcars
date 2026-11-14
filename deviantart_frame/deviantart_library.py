@@ -58,24 +58,25 @@ KEY_FILE = os.path.join(HERE, "deviantart_key.txt")
 CHOICES_FILE = os.path.join(HERE, "deviantart_choices.txt")
 SEEN_FILE = "seen.json"         # the pictures fetched before, kept in the folder given
 
-PICTURE_COUNT = 30              # how many new pictures to fetch each day from the choices...
-DAILY_COUNT = 10                # ...and how many of the Daily Deviations as well...
-KEEP_COUNT = 400                # ...and how many to keep: the oldest beyond this are deleted
-MAX_ZOOM = 1.6                  # pictures that would have to be zoomed more than this to fill the screen
-                                # are low resolution, and passed over (1.2: at least 1600 x 900)
-MAX_ORIGINAL_BYTES = 25_000_000 # a downloadable original bigger than this is too slow to show
-DAILY_DAYS = 7                  # Daily Deviations: today's and this many days before (enough
-                                # to find DAILY_COUNT that are wide and big enough)...
-POPULAR_TIMERANGE = "1week"     # ...then the most popular of this long ("1week", "1month", "alltime")
-PAGE_SIZE = 24                  # pictures are asked for this many at a time (24 is the most allowed)...
-MAX_PAGES = 5                   # ...for at most this many pages from each artist, topic, tag or popular
-SEEN_LIMIT = 5000               # how many fetched pictures to remember
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    DOWNLOAD_PICTURE_COUNT as PICTURE_COUNT,
+    DOWNLOAD_DAILY_COUNT as DAILY_COUNT,
+    DOWNLOAD_KEEP_COUNT as KEEP_COUNT,
+    DOWNLOAD_MAX_ZOOM as MAX_ZOOM,
+    DOWNLOAD_MAX_ORIGINAL_BYTES as MAX_ORIGINAL_BYTES,
+    DOWNLOAD_DAILY_DAYS as DAILY_DAYS,
+    DOWNLOAD_POPULAR_TIMERANGE as POPULAR_TIMERANGE,
+    DOWNLOAD_PAGE_SIZE as PAGE_SIZE,
+    DOWNLOAD_MAX_PAGES as MAX_PAGES,
+    DOWNLOAD_SEEN_LIMIT as SEEN_LIMIT,
+    DOWNLOAD_CHECK_INTERVAL as CHECK_INTERVAL,
+    DOWNLOAD_RETRY_INTERVAL as RETRY_INTERVAL,
+    DOWNLOAD_REQUEST_TIMEOUT as REQUEST_TIMEOUT,
+    DOWNLOAD_REQUEST_PAUSE as REQUEST_PAUSE,
+    DOWNLOAD_MAX_TOPIC_PAGES as MAX_TOPIC_PAGES,
+)
 
-CHECK_INTERVAL = 10 * 60        # seconds between checks for a new day
-RETRY_INTERVAL = 30 * 60        # seconds before trying again after a failure
-REQUEST_TIMEOUT = 30            # seconds
-REQUEST_PAUSE = 1               # seconds between requests, to be polite
-MAX_TOPIC_PAGES = 30            # most pages of topics "topics" will ask for (10 a page)
 
 PICTURE_TYPES = (".jpg", ".jpeg", ".png", ".gif", ".webp")
 USER_AGENT = "lcars-deviantart-frame/1.0 (home display; python-urllib)"

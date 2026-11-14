@@ -5,7 +5,9 @@ Three push buttons on the Raspberry Pi's GPIO pins. Each one is wired between it
 a ground (GND) pin: the Pi's own pull-up resistor holds the pin high, and pressing the
 button pulls it low. No resistors are needed.
 
-    SOUND_PIN     GPIO22  (physical pin 15)   the volume of the screen shown: low, medium, high, off
+    SOUND_PIN     GPIO22  (physical pin 15)   the volume of the screen shown: low, medium, high, off;
+                                              held down for HOLD_SECONDS, passed on to the screen
+                                              shown (the clock turns its chimes on or off)
     NEXT_PIN      GPIO17  (physical pin 11)   next screen, going round them all
     OK_PIN        GPIO27  (physical pin 13)   pressed briefly, or held down for HOLD_SECONDS:
                                               passed on to the screen shown (the DeviantArt
@@ -13,9 +15,10 @@ button pulls it low. No resistors are needed.
                                               the one it is showing)
     ground        GND     (physical pin 9, 14 or 20)
 
-A press of the first two posts screens.TOGGLE_SOUND or screens.NEXT_SCREEN, which the
-main loop handles just like the left and right arrow keys. Pressing the OK one
-briefly posts screens.OK_PRESSED when it is let go; holding it down posts screens.OK_HELD
+A press of the NEXT button posts screens.NEXT_SCREEN, which the main loop handles just
+like the right arrow key. The SOUND and OK buttons can be pressed briefly or held down, so
+they post their event when they are let go: screens.TOGGLE_SOUND (as the left arrow key
+does) or screens.OK_PRESSED. Holding one down posts screens.SOUND_HELD or screens.OK_HELD
 (and nothing more when it is let go).
 
 Uses gpiozero, which is already on Raspberry Pi OS (on a Pi 5 it works through lgpio:
@@ -26,11 +29,14 @@ pins can't be had, a message is printed and the keys still work.
 import pygame
 import screens as scr
 
-SOUND_PIN = 22                  # (it was the PREVIOUS button)
-NEXT_PIN = 17
-OK_PIN = 27
-HOLD_SECONDS = 2            # how long the OK button must be held down
-BOUNCE_SECONDS = 0.10       # a press within this long of the last is taken as contact bounce
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    BUTTONS_SOUND_PIN as SOUND_PIN,
+    BUTTONS_NEXT_PIN as NEXT_PIN,
+    BUTTONS_OK_PIN as OK_PIN,
+    BUTTONS_HOLD_SECONDS as HOLD_SECONDS,
+    BUTTONS_BOUNCE_SECONDS as BOUNCE_SECONDS,
+)
 
 try:
     from gpiozero import Button
@@ -47,9 +53,9 @@ def poster(eventType):
     return post
 
 
-# Make the OK button post OK_HELD once it has been held down for HOLD_SECONDS, or
-# OK_PRESSED when it is let go if it wasn't held that long
-def setUpOkButton(button):
+# Make a button post heldEvent once it has been held down for HOLD_SECONDS, or
+# pressedEvent when it is let go if it wasn't held that long
+def setUpHoldButton(button, pressedEvent, heldEvent):
     state = {"held": False}
 
     def pressed():
@@ -57,11 +63,11 @@ def setUpOkButton(button):
 
     def held():
         state["held"] = True
-        pygame.event.post(pygame.event.Event(scr.OK_HELD))
+        pygame.event.post(pygame.event.Event(heldEvent))
 
     def released():
         if not state["held"]:
-            pygame.event.post(pygame.event.Event(scr.OK_PRESSED))
+            pygame.event.post(pygame.event.Event(pressedEvent))
         state["held"] = False
 
     button.when_pressed = pressed
@@ -78,9 +84,10 @@ def startButtons():
 
     buttons = []
 
-    for pin, eventType in ((SOUND_PIN, scr.TOGGLE_SOUND),
-                           (NEXT_PIN, scr.NEXT_SCREEN),
-                           (OK_PIN, None)):
+    # (pin, the event when pressed, and the event when held down: None if it can't be held)
+    for pin, eventType, heldType in ((SOUND_PIN, scr.TOGGLE_SOUND, scr.SOUND_HELD),
+                                     (NEXT_PIN, scr.NEXT_SCREEN, None),
+                                     (OK_PIN, scr.OK_PRESSED, scr.OK_HELD)):
         try:
             button = Button(pin, pull_up=True, bounce_time=BOUNCE_SECONDS, hold_time=HOLD_SECONDS)
         except Exception as exc:
@@ -88,8 +95,8 @@ def startButtons():
             continue
 
         # gpiozero calls when_held once per hold (hold_repeat is off)
-        if eventType is None:
-            setUpOkButton(button)
+        if heldType is not None:
+            setUpHoldButton(button, eventType, heldType)
         else:
             button.when_pressed = poster(eventType)
         buttons.append(button)

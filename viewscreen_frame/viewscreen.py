@@ -26,35 +26,39 @@ import screens as scr
 import synth
 
 ##==================================================================
-## CONFIGURATION
+## SETTINGS (they are in settings.py, next to lcars.py)
 ##==================================================================
 
-SOUND = True
-SOUND_VOLUME = 0.5              # 0 to 1
-AUTO_WARP_MINUTES = (3, 7)      # at impulse, it goes to warp by itself after between these many minutes (None: only with OK)
-WARP_SECONDS = (12, 30)         # and stays at warp for between these many seconds
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    VIEWSCREEN_SOUND as SOUND,
+    VIEWSCREEN_SOUND_VOLUME as SOUND_VOLUME,
+    VIEWSCREEN_AUTO_WARP_MINUTES as AUTO_WARP_MINUTES,
+    VIEWSCREEN_WARP_SECONDS as WARP_SECONDS,
+    VIEWSCREEN_VIEW as VIEW,
+    VIEWSCREEN_CORNER as CORNER,
+    VIEWSCREEN_BEZEL as BEZEL,
+    VIEWSCREEN_STARS as STARS,
+    VIEWSCREEN_FOCAL as FOCAL,
+    VIEWSCREEN_IMPULSE_SPEED as IMPULSE_SPEED,
+    VIEWSCREEN_WARP_SPEED as WARP_SPEED,
+    VIEWSCREEN_ENGAGE_SECONDS as ENGAGE_SECONDS,
+    VIEWSCREEN_DROP_SECONDS as DROP_SECONDS,
+    VIEWSCREEN_ORANGE as ORANGE,
+    VIEWSCREEN_PEACH as PEACH,
+    VIEWSCREEN_LILAC as LILAC,
+    VIEWSCREEN_ICE_BLUE as ICE_BLUE,
+    VIEWSCREEN_BUTTERSCOTCH as BUTTERSCOTCH,
+    VIEWSCREEN_BLUE as BLUE,
+    VIEWSCREEN_AMBER_LIGHT as AMBER_LIGHT,
+    VIEWSCREEN_BLUE_LIGHT as BLUE_LIGHT,
+    VIEWSCREEN_CHIRP_SECONDS as CHIRP_SECONDS,
+)
+
+VIEW = pygame.Rect(VIEW)        # (left, top, width, height) in settings.py
 
 W, H = scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT
-VIEW = pygame.Rect(150, 64, 1620, 800)     # the screen itself, inside its frame
-CORNER = 46                     # how round its corners are
-BEZEL = 30                      # how wide the metal frame round it is
 CX, CY = VIEW.center
-STARS = 650
-FOCAL = 640                     # how far the stars are spread: bigger looks more zoomed in
-IMPULSE_SPEED = 0.025           # how fast the stars come towards you, in their units a second...
-WARP_SPEED = 2.2                # ...and at warp
-ENGAGE_SECONDS = 1.6            # the stars stretch for this long before the jump to warp
-DROP_SECONDS = 1.1              # and slow for this long when dropping out of warp
-
-ORANGE = (255, 153, 0)
-PEACH = (255, 160, 90)
-LILAC = (204, 153, 255)
-ICE_BLUE = (153, 204, 255)
-BUTTERSCOTCH = (255, 204, 102)
-BLUE = (132, 132, 255)
-AMBER_LIGHT = (255, 170, 60)    # the running lights at impulse...
-BLUE_LIGHT = (110, 175, 255)    # ...and at warp
-CHIRP_SECONDS = (5, 16)         # the consoles chirp every so often, between these many seconds apart
 
 
 ##==================================================================

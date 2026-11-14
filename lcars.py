@@ -5,7 +5,7 @@
 #   lcars_frame/      the LCARS screen, and everything it uses
 #   deviantart_frame/ the DeviantArt picture frame, its daily downloads and its pictures
 #   biomonitor_frame/ the sickbay biomonitor dials
-#   clock_frame/      an old analogue clock, with the date, that chimes the quarters
+#   clock_frame/      a clock with five faces (brass, railway, deco, Nixie, flip) that chimes
 #   departures_frame/ a split-flap board of the aircraft overhead
 #   aquarium_frame/   a fish tank
 #   viewscreen_frame/ the view from the bridge, with warp jumps to new planets
@@ -31,7 +31,10 @@ from viewscreen_frame.viewscreen import ViewscreenScreen
 from lavalamp_frame.lavalamp import LavaLampScreen
 
 
-FRAME_RATE = 30
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    SCREEN_FRAME_RATE as FRAME_RATE,
+)
 
 
 def main():

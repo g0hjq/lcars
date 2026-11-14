@@ -8,7 +8,7 @@ sunlight rippling on the sand.
 The OK button (or Enter) sprinkles food on the water. It sinks slowly, and the fish dart
 up to eat it.
 
-At night (the clock's quiet hours, see QUIET_FROM in clock_frame/clock.py) the tank light
+At night (the clock's quiet hours, see CLOCK_QUIET_FROM in settings.py) the tank light
 goes down, the fish rest near the bottom, and the bubbling is silent.
 
 Everything is drawn by the program: the fish when it starts (each in a few positions of
@@ -25,57 +25,25 @@ import synth
 from clock_frame.clock import ClockScreen
 
 ##==================================================================
-## CONFIGURATION
+## SETTINGS (they are in settings.py, next to lcars.py)
 ##==================================================================
 
-SOUND = True
-SOUND_VOLUME = 0.075            # 0 to 1
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    AQUARIUM_SOUND as SOUND,
+    AQUARIUM_SOUND_VOLUME as SOUND_VOLUME,
+    AQUARIUM_SAND_TOP as SAND_TOP,
+    AQUARIUM_SURFACE as SURFACE,
+    AQUARIUM_TAIL_FRAMES as TAIL_FRAMES,
+    AQUARIUM_FOOD_FLAKES as FOOD_FLAKES,
+    AQUARIUM_STOCK as STOCK,
+    AQUARIUM_KINDS as KINDS,
+    AQUARIUM_WATER_TOP as WATER_TOP,
+    AQUARIUM_WATER_BOTTOM as WATER_BOTTOM,
+    AQUARIUM_NIGHT as NIGHT,
+)
 
 W, H = scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT
-SAND_TOP = 880                  # the top of the sand
-SURFACE = 40                    # the bottom of the water's surface
-TAIL_FRAMES = 8                 # pictures of each fish, its tail in a different place in each
-FOOD_FLAKES = 14                # flakes in each sprinkle of food
-
-# The fish: (kind, how many, length in pixels)
-STOCK = [("tetra", 14, 56), ("clown", 3, 118), ("blue tang", 2, 170), ("yellow tang", 2, 136),
-         ("angel", 2, 140), ("goldfish", 2, 128)]
-
-# How each kind looks:
-#   colour, belly   the colour of its back and sides, and of its belly
-#   tall            how tall its body is for its length
-#   tail            "fork", "round" or "long" (flowing, like a goldfish's)
-#   fin, edge       the colour of its fins, and of their edges (or None)
-#   eye             the colour of the ring round the pupil
-#   bands           upright bands of (from, to, colour), measured from the tail (0) to the nose (1)
-#   stripes         lengthwise stripes of (from, to, top, bottom, colour), top and bottom from -1
-#                   (the back) to 1 (the belly)
-#   speed           how fast it swims, in pixels a second
-KINDS = {
-    "clown": dict(colour=(244, 104, 20), belly=(252, 150, 60), tall=0.5, tail="round", fin=(244, 110, 30),
-                  edge=(24, 18, 16), eye=(200, 90, 20),
-                  bands=[(0.12, 0.2, (250, 250, 245)), (0.46, 0.57, (250, 250, 245)), (0.78, 0.86, (250, 250, 245))],
-                  speed=60),
-    "blue tang": dict(colour=(30, 84, 200), belly=(70, 140, 230), tall=0.62, tail="fork", tailColour=(250, 206, 36),
-                      fin=(30, 84, 200), edge=(12, 16, 40), eye=(30, 30, 50),
-                      stripes=[(0.22, 0.86, -0.8, -0.2, (14, 18, 40))], speed=80),
-    "yellow tang": dict(colour=(250, 208, 30), belly=(255, 232, 110), tall=0.82, tail="fork", fin=(250, 208, 30),
-                        edge=None, eye=(40, 40, 40), speed=70, snout=True),
-    "tetra": dict(colour=(150, 170, 160), belly=(225, 228, 232), tall=0.34, tail="fork", fin=(210, 220, 230),
-                  edge=None, eye=(200, 200, 210),
-                  stripes=[(0.15, 0.92, -0.42, -0.08, (40, 190, 255)), (0.08, 0.55, 0.05, 0.9, (232, 40, 50))],
-                  speed=95),
-    "angel": dict(colour=(196, 198, 190), belly=(238, 238, 230), tall=0.95, tail="fork", fin=(220, 222, 214),
-                  edge=(40, 40, 40), eye=(190, 40, 30),
-                  bands=[(0.25, 0.3, (40, 40, 40)), (0.55, 0.61, (40, 40, 40)), (0.82, 0.86, (60, 60, 60))],
-                  bigFins=True, speed=45),
-    "goldfish": dict(colour=(240, 130, 20), belly=(255, 196, 90), tall=0.52, tail="long", fin=(250, 160, 60),
-                     edge=None, eye=(180, 120, 40), speed=50),
-}
-
-WATER_TOP = (48, 150, 176)
-WATER_BOTTOM = (8, 44, 84)
-NIGHT = (70, 84, 130)           # the tank at night is lit this much (multiplied)
 
 
 ##==================================================================

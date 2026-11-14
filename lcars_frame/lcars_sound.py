@@ -21,7 +21,10 @@ import math
 import pygame
 
 SAMPLE_RATE = 44100
-VOLUME = 0.9                # 0 to 1
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    LCARS_SOUND_VOLUME as VOLUME,
+)
 FADE_SECONDS = 0.008        # each note fades in and out over this long, which stops the clicks
 
 # A sound is a list of notes: (frequency in Hz, seconds), where a frequency of 0 is a pause.

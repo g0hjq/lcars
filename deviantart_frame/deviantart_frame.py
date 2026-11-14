@@ -47,30 +47,35 @@ except ImportError:
     Image = None
 
 PICTURE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pictures")
-PICTURE_SECONDS = 20            # each picture is shown for this long...
-FADE_SECONDS = 3                # ...and fades into the next over this long
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    DEVIANTART_PICTURE_SECONDS as PICTURE_SECONDS,
+    DEVIANTART_FADE_SECONDS as FADE_SECONDS,
+    DEVIANTART_DELETED_FOLDER as DELETED_FOLDER,
+    DEVIANTART_NOTICE_SECONDS as NOTICE_SECONDS,
+    DEVIANTART_FILL_SCREEN as FILL_SCREEN,
+    DEVIANTART_WHITE as WHITE,
+    DEVIANTART_BACKGROUND as BACKGROUND,
+    DEVIANTART_RESCAN_SECONDS as RESCAN_SECONDS,
+    DEVIANTART_ONLINE_FOLDER as ONLINE_FOLDER,
+    DEVIANTART_OWN_PICTURES as OWN_PICTURES,
+    DEVIANTART_OWN_FOLDER as OWN_FOLDER,
+    DEVIANTART_CREDIT_MARGIN as CREDIT_MARGIN,
+    DEVIANTART_CREDIT_PAD as CREDIT_PAD,
+    DEVIANTART_CREDIT_BACKGROUND as CREDIT_BACKGROUND,
+    DEVIANTART_CREDIT_COLOUR as CREDIT_COLOUR,
+    DEVIANTART_CLOCK_MARGIN as CLOCK_MARGIN,
+    DEVIANTART_CLOCK_PAD as CLOCK_PAD,
+    DEVIANTART_CLOCK_BACKGROUND as CLOCK_BACKGROUND,
+    DEVIANTART_CLOCK_TIME_FORMAT as CLOCK_TIME_FORMAT,
+    DEVIANTART_CLOCK_DATE_FORMAT as CLOCK_DATE_FORMAT,
+    DEVIANTART_CLOCK_DAY_FORMAT as CLOCK_DAY_FORMAT,
+    DEVIANTART_CLOCK_DATE_SIZE as CLOCK_DATE_SIZE,
+)
+
+CLOCK_DATE_SIZE = fonts.TextSize[CLOCK_DATE_SIZE]   # named in settings.py
 MAX_ZOOM = dl.MAX_ZOOM          # pictures that would have to be zoomed more than this to fit are low resolution, and skipped
-DELETED_FOLDER = "deleted"      # your own pictures, when deleted, are moved to this folder inside PICTURE_FOLDER
-NOTICE_SECONDS = 3              # "PICTURE DELETED" is shown for this long
 PICTURE_TYPES = (".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp")
-FILL_SCREEN = True              # zoom each picture to fill the screen, cutting off what doesn't fit; False: show all of it
-WHITE = (255, 255, 255)         # the colour of all the text
-BACKGROUND = (0, 0, 0)          # round a picture that isn't the shape of the screen (when FILL_SCREEN is False)
-RESCAN_SECONDS = 10             # how often to look in the folder again when it has no pictures
-ONLINE_FOLDER = "deviantart"    # the downloaded pictures go in this folder inside PICTURE_FOLDER
-OWN_PICTURES = True             # True: show your own pictures too, mixed in with them...
-OWN_FOLDER = "my_own"           # ...from this folder inside PICTURE_FOLDER
-CREDIT_MARGIN = 20              # the credit's distance from the corner of the screen, in pixels
-CREDIT_PAD = 10                 # the space round its text, inside its dark background
-CREDIT_BACKGROUND = (0, 0, 0, 150)   # the colour of that background, and how solid it is (0 to 255)
-CREDIT_COLOUR = WHITE
-CLOCK_MARGIN = 30               # the clock's distance from the top right corner, in pixels
-CLOCK_PAD = 20                  # the space round its text, inside its dark background
-CLOCK_BACKGROUND = (0, 0, 0, 150)   # as CREDIT_BACKGROUND
-CLOCK_TIME_FORMAT = "%H:%M:%S"     # the time, in big text...
-CLOCK_DATE_FORMAT = "%d %B %Y"  # ...and under it the date...
-CLOCK_DAY_FORMAT = "%A"         # ...and the day of the week (see strftime for what these mean)
-CLOCK_DATE_SIZE = fonts.TextSize.LARGE   # the size of the day and the date (the time is XXL)
 
 
 class LowResolution(Exception):

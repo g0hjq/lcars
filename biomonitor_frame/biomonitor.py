@@ -27,7 +27,7 @@ import numpy as np
 import screens as scr
 
 ##==================================================================
-## CONFIGURATION
+## SETTINGS (they are in settings.py, next to lcars.py)
 ##==================================================================
 
 FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -35,26 +35,27 @@ FONT_FILE = os.path.join(FOLDER, "impact.ttf")
 ARROW_FILE = os.path.join(FOLDER, "warm_white_arrow.png")
 HEARTBEAT_FILE = os.path.join(FOLDER, "heartbeat.mp3")
 
-FONT_SIZE_1 = 22
-FONT_SIZE_2 = 28
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    BIOMONITOR_FONT_SIZE_1 as FONT_SIZE_1,
+    BIOMONITOR_FONT_SIZE_2 as FONT_SIZE_2,
+    BIOMONITOR_DIAL_TOP as DIAL_TOP,
+    BIOMONITOR_DIAL_HEIGHT as DIAL_HEIGHT,
+    BIOMONITOR_DIAL_MARGIN as DIAL_MARGIN,
+    BIOMONITOR_DIAL_SPACING as DIAL_SPACING,
+    BIOMONITOR_RESPIRATION_RATE as RESPIRATION_RATE,
+    BIOMONITOR_PULSE_RATE as PULSE_RATE,
+    BIOMONITOR_BACKGROUND_COLOUR as BACKGROUND_COLOUR,
+    BIOMONITOR_BLACK as BLACK,
+    BIOMONITOR_WHITE as WHITE,
+    BIOMONITOR_RED as RED,
+    BIOMONITOR_YELLOW as YELLOW,
+    BIOMONITOR_GREEN as GREEN,
+    BIOMONITOR_LAMP_COLOUR as LAMP_COLOUR,
+    BIOMONITOR_GAMMA as GAMMA,
+)
 
-DIAL_TOP = 100
-DIAL_HEIGHT = 800
 DIAL_BOTTOM = DIAL_TOP + DIAL_HEIGHT
-DIAL_MARGIN = 170
-DIAL_SPACING = 270
-
-RESPIRATION_RATE = 18       # flashes a minute of the breathing lamp...
-PULSE_RATE = 72             # ...and of the pulse lamp
-
-BACKGROUND_COLOUR = (10, 10, 10)
-BLACK = BACKGROUND_COLOUR
-WHITE = (255, 255, 255)
-RED = (255, 50, 50)
-YELLOW = (180, 150, 50)
-GREEN = (100, 255, 100)
-LAMP_COLOUR = (220, 50, 50)
-GAMMA = 3.5
 
 
 ##==================================================================

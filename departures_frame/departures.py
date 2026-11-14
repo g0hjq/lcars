@@ -27,39 +27,35 @@ import synth
 from lcars_frame import lookups as lk
 
 ##==================================================================
-## CONFIGURATION
+## SETTINGS (they are in settings.py, next to lcars.py)
 ##==================================================================
 
-SOUND = True
-SOUND_VOLUME = 0.2              # 0 to 1
-
-# The columns: heading, and how many letters wide
-COLUMNS = [("FLIGHT", 7), ("FROM", 11), ("TO", 11), ("DISTANCE", 8), ("HEIGHT", 6), ("STATUS", 10)]
-ROWS = 14
-
-TILE_W, TILE_H = 30, 50         # each flap, in pixels...
-TILE_GAP = 3                    # ...the space between them...
-COLUMN_GAP = 24                 # ...and between the columns
-ROW_PITCH = 60
-TOP = 196                       # the top of the first row
-
-UPDATE_SECONDS = 10             # the aircraft on the board are brought up to date this often
-FLIP_SECONDS = 0.045            # how long a flap takes to fall to the next letter
-START_SPREAD = 0.35             # the flaps start up to this long after one another, as on a real board
-
-# The letters on each flap's drum, in the order it goes round them
-DRUM = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,-:/'&"
-
-BOARD = (16, 16, 18)
-TEXT = (246, 238, 214)
-AMBER = (255, 186, 60)
-GREEN = (120, 225, 120)
-RED = (255, 80, 64)
-BLUE = (140, 200, 255)
-HEADING = (150, 150, 150)
-
-CLIMB_FPM = 400                 # climbing or descending faster than this, in feet a minute
-LOW_FT = 6000                   # below this, a flight from or to our airport is departing or landing
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    DEPARTURES_SOUND as SOUND,
+    DEPARTURES_SOUND_VOLUME as SOUND_VOLUME,
+    DEPARTURES_COLUMNS as COLUMNS,
+    DEPARTURES_ROWS as ROWS,
+    DEPARTURES_TILE_W as TILE_W,
+    DEPARTURES_TILE_H as TILE_H,
+    DEPARTURES_TILE_GAP as TILE_GAP,
+    DEPARTURES_COLUMN_GAP as COLUMN_GAP,
+    DEPARTURES_ROW_PITCH as ROW_PITCH,
+    DEPARTURES_TOP as TOP,
+    DEPARTURES_UPDATE_SECONDS as UPDATE_SECONDS,
+    DEPARTURES_FLIP_SECONDS as FLIP_SECONDS,
+    DEPARTURES_START_SPREAD as START_SPREAD,
+    DEPARTURES_DRUM as DRUM,
+    DEPARTURES_BOARD as BOARD,
+    DEPARTURES_TEXT as TEXT,
+    DEPARTURES_AMBER as AMBER,
+    DEPARTURES_GREEN as GREEN,
+    DEPARTURES_RED as RED,
+    DEPARTURES_BLUE as BLUE,
+    DEPARTURES_HEADING as HEADING,
+    DEPARTURES_CLIMB_FPM as CLIMB_FPM,
+    DEPARTURES_LOW_FT as LOW_FT,
+)
 
 
 ##==================================================================

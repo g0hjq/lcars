@@ -14,19 +14,20 @@ import pygame
 from enum import Enum
 
 FONT_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
-FONT_FILE = "Antonio-Regular.ttf"
-FONT_FILE_BOLD = "Antonio-Bold.ttf"
-FONT_FILE_SCALE = 0.85      # the sizes below suit Arial; Antonio's letters are taller, so it is drawn smaller
-
-#FONT_NAME = "agency fb"
-FONT_NAME = "arial"
-FONT_SIZE_XS = 18
-FONT_SIZE_SMALL = 22
-FONT_SIZE_LIST = 25         # the list of aircraft beside the radar, which is read from further away
-FONT_SIZE_MEDIUM = 26
-FONT_SIZE_LARGE = 36
-FONT_SIZE_XL = 80
-FONT_SIZE_XXL = 160
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    FONT_FILE,
+    FONT_FILE_BOLD,
+    FONT_FILE_SCALE,
+    FONT_NAME,
+    FONT_SIZE_XS,
+    FONT_SIZE_SMALL,
+    FONT_SIZE_LIST,
+    FONT_SIZE_MEDIUM,
+    FONT_SIZE_LARGE,
+    FONT_SIZE_XL,
+    FONT_SIZE_XXL,
+)
 
 
 class TextSize(Enum):

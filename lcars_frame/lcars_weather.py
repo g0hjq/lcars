@@ -31,13 +31,14 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
 from settings import WEATHER_LAT as LATITUDE, WEATHER_LON as LONGITUDE   # from my_settings.py
 
-FORECAST_DAYS = 5
-
-UPDATE_INTERVAL = 30 * 60   # seconds between successful updates (=30 minutes)
-RETRY_INTERVAL = 5 * 60     # seconds before retrying after a failure
-REQUEST_TIMEOUT = 10        # seconds
-
-DEBUG = False               # print the request URL on every fetch
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    WEATHER_FORECAST_DAYS as FORECAST_DAYS,
+    WEATHER_UPDATE_INTERVAL as UPDATE_INTERVAL,
+    WEATHER_RETRY_INTERVAL as RETRY_INTERVAL,
+    WEATHER_REQUEST_TIMEOUT as REQUEST_TIMEOUT,
+    WEATHER_DEBUG as DEBUG,
+)
 
 
 # The Open-Meteo variables to ask for. Open-Meteo's units already match the
@@ -317,7 +318,6 @@ def update_weather():
         print(f"Weather update failed: {error}")
 
     return False
-
 
 
 # --------------------------------------------------------------------------

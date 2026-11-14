@@ -29,45 +29,72 @@ from . import weather_data as wd
 from datetime import datetime
 
 
-CPU_RATE = 30          # How often to update the CPU and Memory display in seconds
-BORDER = 10
-DIMMED = 0.8
-LIGHTER = 0.2          # how far the border and sidebar colours are moved towards white (0 = as they are, 1 = white)
-GRAPH_DAYS = 3                    # the graphs show this many days of the forecast, starting with the first day of it (today)
-FORECAST_COUNT = 12
-FORECAST_STEP_HOURS = 2
-CALENDAR_EVENT_COUNT = 5
-CALENDAR_COLUMN_GAP = 20   # pixels between the Captain's Log date, time and event columns
-WEATHER_STALE_SECONDS = 60 * 60   # weather older than this is flagged in red
-GRAPH_WIDTH = 250                 # width of each of the three weather graphs, in pixels
-GRAPH_GAP = 20                    # and the space between them
-RADAR_SIZE = 470                  # width and height of the radar, in pixels
-RADAR_RING_NM = 5                 # a ring on the radar every this many nautical miles
-RADAR_ICON_BIG = 20               # size of an aircraft's icon (pixels from centre to nose) at ground level...
-RADAR_ICON_SMALL = 5              # ...and at RADAR_ALTITUDE_MAX_FT or higher
-RADAR_ALTITUDE_MAX_FT = 20000
-RADAR_PASSING_FT = 15000          # an aircraft above this is just passing over, so it is drawn smaller...
-RADAR_ICON_PASSING = 3            # ...at this size
-AIRPORT_NAME = "MAN"              # the airport marked on the radar (Manchester Airport)
-AIRPORT_LAT = 53.3538
-AIRPORT_LON = -2.2750
-
-# Manchester's two runways, drawn to scale: (latitude, longitude) of each end, in
-# degrees (the published threshold positions, from skyvector.com/airport/EGCC)
-AIRPORT_RUNWAYS = (
-    ((53.33200, -2.31067), (53.34817, -2.27717)),      # 05R / 23L
-    ((53.34750, -2.28783), (53.36133, -2.25933)),      # 05L / 23R
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    LCARS_CPU_RATE as CPU_RATE,
+    LCARS_BORDER as BORDER,
+    LCARS_DIMMED as DIMMED,
+    LCARS_LIGHTER as LIGHTER,
+    LCARS_GRAPH_DAYS as GRAPH_DAYS,
+    LCARS_FORECAST_COUNT as FORECAST_COUNT,
+    LCARS_FORECAST_STEP_HOURS as FORECAST_STEP_HOURS,
+    LCARS_CALENDAR_EVENT_COUNT as CALENDAR_EVENT_COUNT,
+    LCARS_CALENDAR_COLUMN_GAP as CALENDAR_COLUMN_GAP,
+    LCARS_WEATHER_STALE_SECONDS as WEATHER_STALE_SECONDS,
+    LCARS_GRAPH_WIDTH as GRAPH_WIDTH,
+    LCARS_GRAPH_GAP as GRAPH_GAP,
+    LCARS_RADAR_SIZE as RADAR_SIZE,
+    LCARS_RADAR_RING_NM as RADAR_RING_NM,
+    LCARS_RADAR_ICON_BIG as RADAR_ICON_BIG,
+    LCARS_RADAR_ICON_SMALL as RADAR_ICON_SMALL,
+    LCARS_RADAR_ALTITUDE_MAX_FT as RADAR_ALTITUDE_MAX_FT,
+    LCARS_RADAR_PASSING_FT as RADAR_PASSING_FT,
+    LCARS_RADAR_ICON_PASSING as RADAR_ICON_PASSING,
+    LCARS_AIRPORT_NAME as AIRPORT_NAME,
+    LCARS_AIRPORT_LAT as AIRPORT_LAT,
+    LCARS_AIRPORT_LON as AIRPORT_LON,
+    LCARS_AIRPORT_RUNWAYS as AIRPORT_RUNWAYS,
+    LCARS_LIST_NM_PER_1000_FT as LIST_NM_PER_1000_FT,
+    LCARS_CONTACT_COUNT as CONTACT_COUNT,
+    LCARS_CONTACT_TEXT_SIZE as CONTACT_TEXT_SIZE,
+    LCARS_CONTACT_COLUMN_GAP as CONTACT_COLUMN_GAP,
+    LCARS_CONTACT_LINE_1_GAP as CONTACT_LINE_1_GAP,
+    LCARS_CONTACT_LIST_RAISE as CONTACT_LIST_RAISE,
+    LCARS_CONTACT_LINE_HEIGHT as CONTACT_LINE_HEIGHT,
+    LCARS_CONTACT_RULE_COLOUR as CONTACT_RULE_COLOUR,
+    LCARS_CONTACT_RULE_HEIGHT as CONTACT_RULE_HEIGHT,
+    LCARS_CONTACT_BLOCK_GAP as CONTACT_BLOCK_GAP,
+    LCARS_POPUP_CENTRE_Y as POPUP_CENTRE_Y,
+    LCARS_POPUP_SECONDS as POPUP_SECONDS,
+    LCARS_POPUP_BEEP_SECONDS as POPUP_BEEP_SECONDS,
+    LCARS_MILITARY_MARKER_COLOUR as MILITARY_MARKER_COLOUR,
+    LCARS_SERVICE_MARKER_COLOUR as SERVICE_MARKER_COLOUR,
+    LCARS_SERVICE_COLOUR as SERVICE_COLOUR,
+    LCARS_SEARCH_TITLE_NO_CONTACTS as SEARCH_TITLE_NO_CONTACTS,
+    LCARS_SEARCH_TITLE_NO_SIGNAL as SEARCH_TITLE_NO_SIGNAL,
+    LCARS_RADAR_CLIMB_COLOURS as RADAR_CLIMB_COLOURS,
+    LCARS_RADAR_DESCEND_COLOURS as RADAR_DESCEND_COLOURS,
+    LCARS_RADAR_VERTICAL_FPM as RADAR_VERTICAL_FPM,
+    LCARS_RADAR_PROJECT_SECONDS as RADAR_PROJECT_SECONDS,
+    LCARS_FLASH_SECONDS as FLASH_SECONDS,
+    LCARS_FLASH_BLINKS_PER_SECOND as FLASH_BLINKS_PER_SECOND,
+    LCARS_EVENT_MAX_NAMES as EVENT_MAX_NAMES,
+    LCARS_HEADER_LEFT_END as HEADER_LEFT_END,
+    LCARS_RIGHT_AREA_X as RIGHT_AREA_X,
+    LCARS_LOG_CHRONO_GAP as LOG_CHRONO_GAP,
+    LCARS_ICON_SIZE_SMALL as ICON_SIZE_SMALL,
+    LCARS_ICON_SIZE_LARGE as ICON_SIZE_LARGE,
+    LCARS_SIDEBAR_LABELS as SIDEBAR_LABELS,
 )
-LIST_NM_PER_1000_FT = 1.0          # in the order of the list, each 1000 feet of height counts as this many nautical miles away
-CONTACT_COUNT = 6                 # how many aircraft are listed beside the radar (the lowest ones: see listOrder)
-CONTACT_TEXT_SIZE = fonts.TextSize.LIST    # the text size of that list
-CONTACT_COLUMN_GAP = 20            # pixels added to each column of that list, on top of its widest text
-CONTACT_LINE_1_GAP = 18            # ...but the columns of the first line after the number have less, to leave room for the model
-CONTACT_LIST_RAISE = 66            # the list is moved up by this many pixels, to leave room for a bigger CONTACT_BLOCK_GAP
-CONTACT_LINE_HEIGHT = 27           # each aircraft takes three lines of this height...
-CONTACT_RULE_COLOUR = ls.Colours.LIGHT_GREY    # a line is drawn between the aircraft in that list, in this colour...
-CONTACT_RULE_HEIGHT = 2            # ...and this many pixels thick
-CONTACT_BLOCK_GAP = 12             # ...and then this much space before the next aircraft
+
+# The text size and the colours are named in settings.py: these are the ones they name
+CONTACT_TEXT_SIZE = fonts.TextSize[CONTACT_TEXT_SIZE]
+CONTACT_RULE_COLOUR = getattr(ls.Colours, CONTACT_RULE_COLOUR)
+MILITARY_MARKER_COLOUR = getattr(ls.Colours, MILITARY_MARKER_COLOUR)
+SERVICE_MARKER_COLOUR = getattr(ls.Colours, SERVICE_MARKER_COLOUR)
+RADAR_CLIMB_COLOURS = tuple(getattr(ls.Colours, name) for name in RADAR_CLIMB_COLOURS)
+RADAR_DESCEND_COLOURS = tuple(getattr(ls.Colours, name) for name in RADAR_DESCEND_COLOURS)
+
 
 # The three lines of each aircraft in that list. Each column is the widest text it
 # will hold (the column is sized to fit it), and which side the text is lined up on.
@@ -91,28 +118,8 @@ CONTACT_LINE_3 = (
 )
 CONTACT_LINES = (CONTACT_LINE_1, CONTACT_LINE_2, CONTACT_LINE_3)
 
-POPUP_CENTRE_Y = 230                            # where the middle of the popup is, from the top of the screen: it is 324 high, so this keeps it above the radar
-POPUP_SECONDS = 15                              # an emergency's popup stays up this long...
-POPUP_BEEP_SECONDS = 4                          # ...and its alarm sounds again this often meanwhile
-MILITARY_MARKER_COLOUR = ls.Colours.WHITE       # the brackets round a military aircraft
-SERVICE_MARKER_COLOUR = ls.Colours.BUTTERSCOTCH # the diamond round an emergency services aircraft (police, coastguard...)
-SERVICE_COLOUR = (80, 230, 120)                 # ...and the aircraft itself, on the radar and in the list (a green, which no other aircraft is)
 
-SEARCH_TITLE_NO_CONTACTS = "No contacts in range"       # the title of the animation shown instead of an empty list...
-SEARCH_TITLE_NO_SIGNAL = "No signal from receiver"      # ...or, if the last fetch of the aircraft failed, this
-# An aircraft that is level is drawn in the sidebar colour. One that is climbing is drawn in whichever
-# of these is furthest from that colour, and one that is descending likewise, so they can't be mistaken for it.
-RADAR_CLIMB_COLOURS = (ls.Colours.ICE_BLUE, ls.Colours.BLUE, ls.Colours.LILAC)
-RADAR_DESCEND_COLOURS = (ls.Colours.ORANGE, ls.Colours.SALMON, ls.Colours.RED)
-RADAR_VERTICAL_FPM = 300                        # it counts as climbing or descending at this many feet per minute or more
-RADAR_PROJECT_SECONDS = 10                      # an aircraft is moved on from where it was last reported for at most this long
-FLASH_SECONDS = 4                               # a new contact blinks white in the list and on the radar for this long...
-FLASH_BLINKS_PER_SECOND = 3                     # ...at this rate
-EVENT_MAX_NAMES = 2                             # more contacts than this arriving (or leaving) together are announced as a number
-HEADER_LEFT_END = 990                           # a title's line runs on to here for the sections on the left...
 HEADER_RIGHT_END = scr.SCREEN_WIDTH - BORDER     # ...and here for the ones on the right
-RIGHT_AREA_X = 1020                             # the right-hand side of the screen starts here
-LOG_CHRONO_GAP = 20                             # space between the Captain's Log and the Chronometer
 DEG = "\u00B0"
 
 # ---- TEMPORARY TEST CODE: delete this block, TestAircraftFetcher and the "if TEST_AIRCRAFT" in main() when done ----
@@ -140,14 +147,10 @@ TEST_PLANES = (
 # Relative to this script, not the current directory, so it still works when
 # started from autostart / systemd with a different working directory.
 ICON_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "graphics", "wmo_icons")
-ICON_SIZE_SMALL = 60
-ICON_SIZE_LARGE = 200
 DRIZZLE_CODES = (51, 53, 55, 56, 57)   # WMO codes whose icons get strengthened
 
 
 
-SIDEBAR_LABELS = ("LCARS-III", "NET", "COM", "GLP", "ENV", 
-                  "MAIN", "BYP", "NWC", "FEK", "SHF", "ARS")
 
 
 # A colour moved part of the way towards white, by LIGHTER

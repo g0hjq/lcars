@@ -55,14 +55,14 @@ SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 # Next to this script, not in the current directory, so they are found wherever it is started from
 CREDENTIALS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "credentials.json")
 TOKEN_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "token.json")
-CALENDAR_ID = "primary"
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    CALENDAR_ID,
+    CALENDAR_MAX_PAGES as MAX_PAGES,
+    CALENDAR_DEBUG as DEBUG,
+)
 
-# Google can return a short page of events even when there are more, so the
-# fetch asks for further pages until it has enough. This stops it asking
-# forever if Google keeps sending short or empty pages.
-MAX_PAGES = 10
 
-DEBUG = False       # print how many events, and how many pages, each fetch gets
 
 
 def _start_to_unix(start_str, all_day):

@@ -52,12 +52,15 @@ from .aircraft_data import Aircraft, AircraftData, looks_military, service_for_c
 
 from settings import AIRCRAFT_URL, HOME_LAT, HOME_LON     # your receiver, from my_settings.py
 
-POLL_SECONDS = 3
-RADIUS_NM = 15              # only aircraft this close (nautical miles) are kept
-SERVICE_RADIUS_NM = 3        # an emergency services aircraft is only announced this close (nautical miles); it is coloured at any range
-MAX_ALTITUDE_FT = 99999     # ...and only if they are lower than this (feet)
-MAX_POSITION_AGE_SECS = 180 # ...and only if their position is this fresh
-TRAIL_SECONDS = 900         # how far back an aircraft's trail goes
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    AIRCRAFT_POLL_SECONDS as POLL_SECONDS,
+    AIRCRAFT_RADIUS_NM as RADIUS_NM,
+    AIRCRAFT_SERVICE_RADIUS_NM as SERVICE_RADIUS_NM,
+    AIRCRAFT_MAX_ALTITUDE_FT as MAX_ALTITUDE_FT,
+    AIRCRAFT_MAX_POSITION_AGE_SECS as MAX_POSITION_AGE_SECS,
+    AIRCRAFT_TRAIL_SECONDS as TRAIL_SECONDS,
+)
 EARTH_RADIUS_NM = 3440.065
 
 

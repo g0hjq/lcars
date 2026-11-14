@@ -22,33 +22,24 @@ import pygame
 import screens as scr
 
 ##==================================================================
-## CONFIGURATION
+## SETTINGS (they are in settings.py, next to lcars.py)
 ##==================================================================
 
 W, H = scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT
 CX = W // 2
-FADE_SECONDS = 6                # the colours take this long to change
-GLOW_SECONDS = 0.5              # the glow on the wall follows them in steps this far apart
-BLOBS = 7
-SCALE = 3                       # the wax is worked out at 1/SCALE of the size
-
-# (liquid, wax) colours, one pair for each hour in turn
-PALETTES = [
-    ((236, 196, 40), (226, 40, 26)),
-    ((34, 64, 176), (238, 238, 248)),
-    ((96, 24, 136), (255, 124, 24)),
-    ((40, 140, 64), (250, 228, 64)),
-    ((206, 214, 226), (255, 72, 150)),
-    ((24, 118, 140), (255, 64, 190)),
-    ((176, 22, 32), (255, 206, 60)),
-    ((22, 22, 44), (84, 228, 255)),
-]
-
-# The shape of the lamp: (y, half the width) down its outline. The glass is between GLASS_TOP and GLASS_BOTTOM.
-CAP = [(40, 46), (150, 76)]
-GLASS_TOP, GLASS_BOTTOM = 150, 760
-BASE = [(760, 128), (800, 112), (870, 104), (1000, 196), (1040, 212)]
-SHELF = 1040
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    LAVALAMP_FADE_SECONDS as FADE_SECONDS,
+    LAVALAMP_GLOW_SECONDS as GLOW_SECONDS,
+    LAVALAMP_BLOBS as BLOBS,
+    LAVALAMP_SCALE as SCALE,
+    LAVALAMP_PALETTES as PALETTES,
+    LAVALAMP_CAP as CAP,
+    LAVALAMP_GLASS_TOP as GLASS_TOP,
+    LAVALAMP_GLASS_BOTTOM as GLASS_BOTTOM,
+    LAVALAMP_BASE as BASE,
+    LAVALAMP_SHELF as SHELF,
+)
 
 
 def glassHalfWidth(y):

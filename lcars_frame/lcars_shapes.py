@@ -12,84 +12,76 @@ from enum import Enum
 import fonts
 
 
-# TextScroller tuning
-SCROLL_HOLD = 4.5       # seconds each string is held still
-SCROLL_SPEED = 120      # scroll rate in pixels per second
-SCROLL_PAD = 10         # inset from the left/right edges of the box
-SCROLL_MAX_MESSAGES = 4 # most messages (see TextScroller.message) that can be waiting their turn
+# Its settings are in settings.py (next to lcars.py)
+from settings import (
+    SHAPES_SCROLL_HOLD as SCROLL_HOLD,
+    SHAPES_SCROLL_SPEED as SCROLL_SPEED,
+    SHAPES_SCROLL_PAD as SCROLL_PAD,
+    SHAPES_SCROLL_MAX_MESSAGES as SCROLL_MAX_MESSAGES,
+    SHAPES_TICKER_SPEED as TICKER_SPEED,
+    SHAPES_TICKER_SEPARATOR as TICKER_SEPARATOR,
+    SHAPES_TWINKLE_FAST as TWINKLE_FAST,
+    SHAPES_TWINKLE_MEDIUM as TWINKLE_MEDIUM,
+    SHAPES_TWINKLE_SLOW as TWINKLE_SLOW,
+    SHAPES_TWINKLE_VERYSLOW as TWINKLE_VERYSLOW,
+    SHAPES_TWINKLE_SPREAD as TWINKLE_SPREAD,
+    SHAPES_GRAPH_BAR_FRACTION as GRAPH_BAR_FRACTION,
+    SHAPES_GRAPH_DOT_MIN as GRAPH_DOT_MIN,
+    SHAPES_GRAPH_DOT_MAX as GRAPH_DOT_MAX,
+    SHAPES_GRAPH_PULSE_SECONDS as GRAPH_PULSE_SECONDS,
+    SHAPES_BAR_TEXT_PAD as BAR_TEXT_PAD,
+    SHAPES_RADAR_MARGIN as RADAR_MARGIN,
+    SHAPES_RADAR_TAB_SIZE as RADAR_TAB_SIZE,
+    SHAPES_RADAR_TICK_DEGREES as RADAR_TICK_DEGREES,
+    SHAPES_RADAR_LONG_TICK_DEGREES as RADAR_LONG_TICK_DEGREES,
+    SHAPES_RADAR_SWEEP_SECONDS as RADAR_SWEEP_SECONDS,
+    SHAPES_RADAR_SWEEP_GLOW_DEGREES as RADAR_SWEEP_GLOW_DEGREES,
+    SHAPES_RADAR_SWEEP_GLOW_ALPHA as RADAR_SWEEP_GLOW_ALPHA,
+    SHAPES_RADAR_FLARE_DEGREES as RADAR_FLARE_DEGREES,
+    SHAPES_RADAR_FLARE_AMOUNT as RADAR_FLARE_AMOUNT,
+    SHAPES_RADAR_MARKER_GAP as RADAR_MARKER_GAP,
+    SHAPES_RADAR_LABEL_GAP as RADAR_LABEL_GAP,
+    SHAPES_CASCADE_INTERVAL as CASCADE_INTERVAL,
+    SHAPES_CASCADE_CHANGES as CASCADE_CHANGES,
+    SHAPES_CASCADE_PAD as CASCADE_PAD,
+    SHAPES_SEARCH_ROWS as SEARCH_ROWS,
+    SHAPES_SEARCH_SEGMENTS as SEARCH_SEGMENTS,
+    SHAPES_SEARCH_GAP as SEARCH_GAP,
+    SHAPES_SEARCH_TRAIL as SEARCH_TRAIL,
+    SHAPES_SEARCH_MIN_SPEED as SEARCH_MIN_SPEED,
+    SHAPES_SEARCH_MAX_SPEED as SEARCH_MAX_SPEED,
+    SHAPES_SEARCH_UNLIT as SEARCH_UNLIT,
+    SHAPES_SEARCH_HEAD_WHITE as SEARCH_HEAD_WHITE,
+    SHAPES_SEARCH_DOT_SECONDS as SEARCH_DOT_SECONDS,
+    SHAPES_SEARCH_TITLE_HEIGHT as SEARCH_TITLE_HEIGHT,
+    SHAPES_SEARCH_SUBTITLE_HEIGHT as SEARCH_SUBTITLE_HEIGHT,
+    SHAPES_POPUP_WIDTH as POPUP_WIDTH,
+    SHAPES_POPUP_FRAME as POPUP_FRAME,
+    SHAPES_POPUP_RADIUS as POPUP_RADIUS,
+    SHAPES_POPUP_TITLE_HEIGHT as POPUP_TITLE_HEIGHT,
+    SHAPES_POPUP_BAND_HEIGHTS as POPUP_BAND_HEIGHTS,
+    SHAPES_POPUP_PAD as POPUP_PAD,
+    SHAPES_POPUP_FLASH_HZ as POPUP_FLASH_HZ,
+    SHAPES_METER_DIM as METER_DIM,
+    SHAPES_TEXT_CONTRAST_THRESHOLD as TEXT_CONTRAST_THRESHOLD,
+    SHAPES_ICON_SCALES as ICON_SCALES,
+    SHAPES_HELICOPTER_SPIN as HELICOPTER_SPIN,
+)
 
-# Ticker tuning
-TICKER_SPEED = 100                  # scroll rate in pixels per second
-TICKER_SEPARATOR = "   \u2022   "   # bullet shown between strings
  
 
-# Twinkler tuning - seconds between colour changes at each rate.
-TWINKLE_FAST = 0.3   
-TWINKLE_MEDIUM = 0.8
-TWINKLE_SLOW = 2     
-TWINKLE_VERYSLOW = 10
-TWINKLE_SPREAD = 0.7    # random rates vary +/- this fraction of the period
 
  
-# Graph tuning - the most of each value's slice of the x axis that a bar fills
-# (the rest is the gap between bars). A bar is always at least 1 pixel wide.
-GRAPH_BAR_FRACTION = 2 / 3
-
-# Graph tuning - the white dot on the current hour swells and shrinks between these two
-# radii (in pixels), once every GRAPH_PULSE_SECONDS
-GRAPH_DOT_MIN = 4
-GRAPH_DOT_MAX = 7
-GRAPH_PULSE_SECONDS = 1.6
 
 
-BAR_TEXT_PAD = 8                # space between the edge of a Bar and its text, in pixels
-
-# Radar tuning - the space left around the circle for the ring of ticks and the N, E, S and W tabs
-RADAR_MARGIN = 22
-RADAR_TAB_SIZE = 18             # width and height of those tabs
-RADAR_TICK_DEGREES = 10         # a tick on the ring every this many degrees...
-RADAR_LONG_TICK_DEGREES = 30    # ...and a longer one every this many
-RADAR_SWEEP_SECONDS = 6         # how long the sweep takes to go once round
-RADAR_SWEEP_GLOW_DEGREES = 50   # how far behind the sweep line its glow reaches
-RADAR_SWEEP_GLOW_ALPHA = 90     # how strong the glow is next to the line (0 to 255)
-RADAR_FLARE_DEGREES = 120       # an aircraft lights up as the sweep passes it, and fades over this many degrees...
-RADAR_FLARE_AMOUNT = 0.7        # ...going this fraction of the way towards white at its brightest
-RADAR_MARKER_GAP = 5            # a marker round an aircraft (see drawMarker) is this many pixels outside its icon
-RADAR_LABEL_GAP = 6               # extra space between an aircraft's icon and its number on the radar, in pixels
-
-# Cascade tuning - every CASCADE_INTERVAL seconds, CASCADE_CHANGES of its numbers change
-CASCADE_INTERVAL = 0.12
-CASCADE_CHANGES = 3
-CASCADE_PAD = 4                 # space to the left of each number, in pixels
-
-# Searching tuning - the animation for an empty list: rows of segments with a light bouncing along each
-SEARCH_ROWS = 4
-SEARCH_SEGMENTS = 22            # segments in each row
-SEARCH_GAP = 5                  # pixels between segments, and between rows
-SEARCH_TRAIL = 7                # how many segments the glow behind each light reaches
-SEARCH_MIN_SPEED = 4            # slowest and fastest row, in segments per second
-SEARCH_MAX_SPEED = 12
-SEARCH_UNLIT = 0.9             # how far the unlit segments are faded towards the background (0 to 1)
-SEARCH_HEAD_WHITE = 0.6         # how far the light itself is taken towards white (0 to 1)
-SEARCH_DOT_SECONDS = 0.5        # seconds between the dots after SCANNING
-SEARCH_TITLE_HEIGHT = 100       # the space for the title, and under it for SCANNING, in pixels
-SEARCH_SUBTITLE_HEIGHT = 80
 
 
-# Popup tuning
-POPUP_WIDTH = 1000
-POPUP_FRAME = 8                 # thickness of the frame, in pixels
-POPUP_RADIUS = 28               # how round its corners are
-POPUP_TITLE_HEIGHT = 64
-POPUP_BAND_HEIGHTS = (110, 60, 44)      # the heights of the three lines of text under the title
-POPUP_PAD = 30                  # space left of the text, and below the last line
-POPUP_FLASH_HZ = 2              # how many times a second the colours flash
 
-# Meter tuning - how dark the unlit segments are, as a fraction of the colour
-METER_DIM = 0.22
 
-# Text switches from white to black once the shape behind it is this bright
-TEXT_CONTRAST_THRESHOLD = 160
+
+
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -743,8 +735,6 @@ PLANE_FAST = (
 # compared with the size asked for: heavy aircraft are bigger and light ones smaller. A kind
 # that isn't here (or None, for one that doesn't say) is drawn at the size asked for.
 ICON_OUTLINES = {"LIGHT": PLANE_LIGHT, "FAST": PLANE_FAST}
-ICON_SCALES = {"LIGHT": 0.75, "SMALL": 0.85, "HEAVY": 1.25, "FAST": 0.9, "HELICOPTER": 0.9}
-HELICOPTER_SPIN = 720           # degrees per second, for a helicopter's rotor
 
 
 # How much bigger or smaller than the size asked for a kind of aircraft is drawn

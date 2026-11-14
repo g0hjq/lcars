@@ -1,1 +1,1 @@
-"""The clock screen (clock.py): an old analogue clock with the day and the date, which chimes the quarters."""
+"""The clock screen (clock.py), with five faces that the OK button goes round: brass, railway, deco, Nixie and flip."""
