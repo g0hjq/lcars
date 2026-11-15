@@ -22,7 +22,8 @@ files. Chimes are heard even behind the other screens (if CHIME_WHEN_HIDDEN); ti
 the clock is shown. The SOUND button sets only how loud the ticks are, going round
 TICK_VOLUMES (LOWER, LOW, MEDIUM, HIGH and OFF): the chimes are always as loud as
 CHIME_VOLUME. Holding SOUND down (or C) turns the chimes off, or back on. Holding OK down (or
-Delete) plays the face's last chime again, like the repeat on an old clock. Between
+Delete) plays the face's last chime again, like the repeat on an old clock (on the city face it
+shows the city an hour later instead). Between
 QUIET_FROM and QUIET_UNTIL (to the minute) it neither ticks nor chimes. Other buttons and keys
 are passed on to the face shown (the city's TIME button, say).
 
@@ -218,17 +219,28 @@ class ClockScreen(scr.Screen):
             self.showNotice(f"{self.name}   CHIMES {'ON' if self.chimesOn else 'OFF'}",
                             (255, 153, 0) if self.chimesOn else (230, 61, 61))
 
+        # OK held down: the face can use it (the city goes an hour later); if it doesn't, the
+        # last chime plays again
         elif event.type == scr.OK_HELD or (event.type == pygame.KEYDOWN and event.key == pygame.K_DELETE):
-            self.silence()
-            if self.chimesOn:
-                self.play(self.lastChime(datetime.datetime.now()))
+            if not self.faceEvent(event):
+                self.silence()
+                if self.chimesOn:
+                    self.play(self.lastChime(datetime.datetime.now()))
 
-        # anything else is the face's to use, if it wants it (it returns the words of a notice)
-        elif self.face in self.built:
-            text = self.face.handleEvent(event)
-            if text:
-                print(f"Clock: {text}")
-                self.showNotice(f"{self.name}   {text}")
+        # anything else is the face's to use, if it wants it
+        else:
+            self.faceEvent(event)
+
+
+    # Passes a button or key to the face shown, which returns the words of a notice if it used it
+    def faceEvent(self, event):
+        if self.face not in self.built:
+            return False
+        text = self.face.handleEvent(event)
+        if text:
+            print(f"Clock: {text}")
+            self.showNotice(f"{self.name}   {text}")
+        return bool(text)
 
 
     # The face's chime for the last quarter that had one, going back up to an hour

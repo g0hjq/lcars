@@ -26,8 +26,8 @@ of the day), the window panes reflect the sky, lit windows and lamps throw their
 walls and the damp road, and the clouds are lit from the sun's side. The walls are brick, stone
 or concrete, streaked by the rain.
 
-A new city is made each night at CITY_NEW_CITY_HOUR. The TIME button (or T, or a tap on the
-clock) shows it an hour later each press, to see it at other times of day; holding TIME (or R)
+A new city is made each night at CITY_NEW_CITY_HOUR. Holding OK down (or the TIME button, or
+T, or a tap on the clock) shows it an hour later each time, to see it at other times of day; holding TIME (or R)
 goes back to now, as it does by itself after CITY_PREVIEW_SECONDS.
 
 A distant church bell strikes the hours (CITY_STRIKE_HOURS). There are no ticks.
@@ -469,11 +469,12 @@ class CityFace(Face):
             print("City: a new day, so a new city")
             self.makeCity()
 
-    # The TIME button (or T, or a tap on the clock) shows the city an hour later than the one
-    # shown; holding it down (or R) goes back to now. It goes back by itself after
+    # Holding OK down (or the TIME button, or T, or Delete, or a tap on the clock) shows the
+    # city an hour later than the one shown; holding it down (or R) goes back to now. It goes back by itself after
     # PREVIEW_SECONDS. Returns the words of the notice to show.
     def handleEvent(self, event):
-        later = (event.type == scr.TIME_PRESSED or (event.type == pygame.KEYDOWN and event.key == pygame.K_t) or
+        later = (event.type in (scr.TIME_PRESSED, scr.OK_HELD) or
+                 (event.type == pygame.KEYDOWN and event.key in (pygame.K_t, pygame.K_DELETE)) or
                  (event.type == pygame.MOUSEBUTTONDOWN and self.clockRect().collidepoint(event.pos)))
         back = event.type == scr.TIME_HELD or (event.type == pygame.KEYDOWN and event.key == pygame.K_r)
         if not (later or back):

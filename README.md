@@ -48,17 +48,17 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
       the traffic builds up over its first half minute.
     - People walk along the pavement, clouds drift by, birds and aeroplanes cross the sky
       now and then, and steam rises from the roofs. A distant bell strikes the hours.
-    - To see it at another time of day, press the TIME button (or T, or tap the clock): each
-      press goes an hour later, with the time in amber. Holding TIME (or R) goes back to now,
-      as it does by itself after a minute.
+    - To see it at another time of day, hold OK down (or press the TIME button, or T, or tap
+      the clock): each time goes an hour later, with the time in amber. Holding TIME (or R)
+      goes back to now, as it does by itself after a minute.
 
   Chimes are heard even behind the other screens; ticks only while the clock is shown. On the
   clock the SOUND button sets only how loud the ticks are (LOWER, LOW, MEDIUM, HIGH or OFF):
   the chimes always play at full volume, and holding SOUND down turns them off, or back on.
   Both are for the whole clock, whichever face is shown. Holding OK down plays the last chime
-  again. It is silent from a minute past midnight to a minute before 9am, so the midnight
-  chime and the 9 o'clock one are heard. Each face is drawn the first time it is shown,
-  which takes a few seconds. Its settings (which faces, the sound, the quiet hours, and each
+  again (except on the city face, where it goes an hour later). It is silent from a minute
+  past midnight to a minute before 9am, so the midnight chime and the 9 o'clock one are
+  heard. Each face is drawn the first time it is shown, which takes a few seconds. Its settings (which faces, the sound, the quiet hours, and each
   face's colours and sizes) are the `CLOCK_`, `BRASS_`, `RAILWAY_`, `DECO_`, `NIXIE_`,
   `FLIP_`, `CUCKOO_` and `CITY_` ones in `settings.py`.
 - **Departures board**: an old split-flap board, like a station's or an airport's, listing the
@@ -268,7 +268,7 @@ used, so nothing else is needed.
 | SOUND, held for 2 seconds | GPIO22 (pin 15) | C | clock: turn the chimes off, or back on |
 | NEXT | GPIO17 (pin 11) | Right arrow | next screen, going round them all |
 | OK, pressed briefly | GPIO27 (pin 13) | Enter or space | depends on the screen: see below |
-| OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: play the face's last chime again |
+| OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: play the face's last chime again, or on the city face, show the city an hour later |
 | TIME, pressed briefly (optional) | GPIO23 (pin 16) | T (or tap the clock) | city clock: show the city an hour later than the one shown, for a minute |
 | TIME, held for 2 seconds | GPIO23 (pin 16) | R | city clock: back to now |
 | | | Esc or Q | quit (the service starts it again) |
