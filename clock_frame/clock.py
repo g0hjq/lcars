@@ -29,7 +29,8 @@ are passed on to the face shown (the city's TIME button, say).
 
 All the settings, for the screen and for each face, are in settings.py (next to lcars.py).
 
-Each face is drawn the first time it is shown, which takes a moment, and kept.
+Each face is drawn the first time it is shown, which takes a moment (the screen is blank, with
+the face's name, meanwhile), and kept.
 
 Uses numpy (on Raspberry Pi OS already; otherwise sudo apt install python3-numpy).
 """
@@ -106,7 +107,6 @@ class ClockScreen(scr.Screen):
         self.statusImage = None
         self.notice = None              # (picture, when) of the face's name in the middle...
         self.noticeShown = False        # ...and whether it has been drawn yet
-        self.lastFace = self.face       # the face before, shown while a new one is being drawn
 
         self.stopping = threading.Event()
         threading.Thread(target=self.tickLoop, name="clock ticks", daemon=True).start()
@@ -201,13 +201,11 @@ class ClockScreen(scr.Screen):
     def handleEvent(self, event):
         if event.type == scr.OK_PRESSED or (event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE)):
             self.silence()
-            if self.face in self.built:
-                self.lastFace = self.face
             self.index = (self.index + 1) % len(self.faces)
             print(f"Clock: {self.face.name}")
             self.face.enter()
             self.status = None
-            self.showNotice(f"{self.name}   {self.face.name}")
+            self.showNotice(f"{self.face.name}   {self.name}")
 
         # SOUND held down (or C) turns the chimes off, or back on
         elif event.type == scr.SOUND_HELD or (event.type == pygame.KEYDOWN and event.key == pygame.K_c):
@@ -322,8 +320,12 @@ class ClockScreen(scr.Screen):
         self.face.update(now)
 
 
+    # A face not drawn yet leaves the screen blank, with its name in the middle, until it is ready
     def draw(self, surface):
-        (self.face if self.face in self.built else self.lastFace).draw(surface)
+        if self.face in self.built:
+            self.face.draw(surface)
+        else:
+            surface.fill((0, 0, 0))
         if self.statusImage:
             surface.blit(self.statusImage, self.statusImage.get_rect(bottomright=STATUS_CORNER))
 

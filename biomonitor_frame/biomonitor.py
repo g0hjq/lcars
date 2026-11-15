@@ -37,6 +37,7 @@ HEARTBEAT_FILE = os.path.join(FOLDER, "heartbeat.mp3")
 
 # Its settings are in settings.py (next to lcars.py)
 from settings import (
+    SCREEN_SOUND_BUFFER,
     BIOMONITOR_FONT_SIZE_1 as FONT_SIZE_1,
     BIOMONITOR_FONT_SIZE_2 as FONT_SIZE_2,
     BIOMONITOR_DIAL_TOP as DIAL_TOP,
@@ -559,7 +560,7 @@ def load_font(size):
 def load_sound(path):
     try:
         if not pygame.mixer.get_init():
-            pygame.mixer.init()
+            pygame.mixer.init(buffer=SCREEN_SOUND_BUFFER)
         return pygame.mixer.Sound(path)
     except (pygame.error, OSError) as exc:
         print(f"No heartbeat sound: {exc}")

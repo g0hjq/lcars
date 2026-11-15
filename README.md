@@ -29,7 +29,8 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
     before each hour.
   - **Flip**: a 1970s flip clock whose cards fall over with a clack, with the day, the date
     and the month below.
-  - **Cuckoo**: a Black Forest cuckoo clock on a knotty pine wall, with a swinging pendulum and
+  - **Cuckoo**: a Black Forest cuckoo clock on a knotty pine wall, seen from level with its dial
+    (so the underside of the roof and the top of the base show), with a swinging pendulum and
     two pine-cone weights that go down through the day. On the hour the doors under the roof
     open and the cuckoo comes out to call the hour; at half past it calls once.
   - **City**: a made-up city across a street, with the time in the top right corner. A new
@@ -58,7 +59,8 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
   Both are for the whole clock, whichever face is shown. Holding OK down plays the last chime
   again (except on the city face, where it goes an hour later). It is silent from a minute
   past midnight to a minute before 9am, so the midnight chime and the 9 o'clock one are
-  heard. Each face is drawn the first time it is shown, which takes a few seconds. Its settings (which faces, the sound, the quiet hours, and each
+  heard. Each face is drawn the first time it is shown, which takes a few seconds: meanwhile
+  the screen is blank, with the face's name (DECO CLOCK, say). Its settings (which faces, the sound, the quiet hours, and each
   face's colours and sizes) are the `CLOCK_`, `BRASS_`, `RAILWAY_`, `DECO_`, `NIXIE_`,
   `FLIP_`, `CUCKOO_` and `CITY_` ones in `settings.py`.
 - **Departures board**: an old split-flap board, like a station's or an airport's, listing the
@@ -66,13 +68,17 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
   It is brought up to date every 10 seconds (`DEPARTURES_UPDATE_SECONDS` in `settings.py`),
   when the letters clatter round (silently) to anything that has changed.
 - **Aquarium**: a tropical fish tank, with fish of several kinds, a school of neon tetras,
-  swaying plants, bubbles and sunlight rippling on the sand. The OK button feeds the fish. At
-  night (the clock's quiet hours) the light goes down and the fish rest.
+  swaying plants, driftwood, a stream of bubbles, specks drifting in the water, sunlight
+  rippling on the sand and shimmering on the underside of the surface, and more plants fading
+  into the haze at the back. The time is at the top left (`AQUARIUM_CLOCK_SIZE`). The OK
+  button feeds the fish. At night (the clock's quiet hours) the light goes down and the fish
+  rest.
 - **Viewscreen**: the bridge's main viewscreen, set in its metal frame in the bulkhead, with
   running lights chasing round it and a console below. At impulse there is a planet or nebula
   ahead; the OK button (or a few minutes' wait) powers up and goes to warp, the lights turning
   blue, and it drops out later somewhere new: each planet and nebula is made up by the
-  program, with a made-up name. The bridge hums, and the consoles chirp now and then.
+  program, with a made-up name. The bridge hums, and the consoles chirp now and then. The
+  time is on the console (`VIEWSCREEN_CLOCK`).
 
 The sounds are all made by the program as it starts (see `synth.py`), so there are no sound
 files apart from the biomonitor's heartbeat. How loud each one is, from 0 to 1, is set in

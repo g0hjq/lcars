@@ -18,6 +18,8 @@ device, makeSound returns None, so check before playing.
 import numpy as np
 import pygame
 
+from settings import SCREEN_SOUND_BUFFER
+
 SAMPLE_RATE = 44100
 
 
@@ -26,7 +28,7 @@ SAMPLE_RATE = 44100
 def ready():
     try:
         if not pygame.mixer.get_init():
-            pygame.mixer.init(frequency=SAMPLE_RATE, size=-16, channels=2)
+            pygame.mixer.init(frequency=SAMPLE_RATE, size=-16, channels=2, buffer=SCREEN_SOUND_BUFFER)
     except pygame.error as exc:
         print(f"No sound: {exc}")
         return False

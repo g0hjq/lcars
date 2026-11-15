@@ -12,9 +12,10 @@ with rings), Earth-like worlds with seas and clouds, deserts, ice worlds and lav
 each with a made-up name. The next one is made in the background while the ship is at warp.
 
 The bridge hums quietly, and the consoles chirp now and then; going to warp powers up with a
-rising sweep before the jump, and dropping out winds down again.
+rising sweep before the jump, and dropping out winds down again. The time is on the console.
 """
 
+import datetime
 import math
 import os
 import random
@@ -53,6 +54,8 @@ from settings import (
     VIEWSCREEN_AMBER_LIGHT as AMBER_LIGHT,
     VIEWSCREEN_BLUE_LIGHT as BLUE_LIGHT,
     VIEWSCREEN_CHIRP_SECONDS as CHIRP_SECONDS,
+    VIEWSCREEN_CLOCK as CLOCK,
+    VIEWSCREEN_HOURS_24 as HOURS_24,
 )
 
 VIEW = pygame.Rect(VIEW)        # (left, top, width, height) in settings.py
@@ -445,6 +448,9 @@ class ViewscreenScreen(scr.Screen):
         self.sky = drawSky().convert()
         self.font = lcarsFont(30)
         self.smallFont = lcarsFont(24)
+        self.clockFont = lcarsFont(74)
+        self.clockKey = None            # the minute shown, and its picture
+        self.clockImage = None
         self.flashSurface = pygame.Surface(VIEW.size)
         self.flashSurface.fill((200, 220, 255))
         self.frame, self.consoleTop = drawFrame()
@@ -697,6 +703,16 @@ class ViewscreenScreen(scr.Screen):
                              for colour in (BUTTERSCOTCH, PEACH, BLUE, ICE_BLUE)]
         for i, image in enumerate(self.readings):
             surface.blit(image, (W - 760 + i * 122 + 6, y + 30))
+
+        # the time, on the console just before the readings (it stays put however long the label is)
+        if CLOCK:
+            now = datetime.datetime.now()
+            if (now.hour, now.minute) != self.clockKey:
+                self.clockKey = (now.hour, now.minute)
+                hour = now.hour if HOURS_24 else (now.hour % 12 or 12)
+                text = f"{hour:02d}:{now.minute:02d}" if HOURS_24 else f"{hour}:{now.minute:02d}"
+                self.clockImage = self.clockFont.render(text, True, ORANGE)
+            surface.blit(self.clockImage, self.clockImage.get_rect(midright=(W - 800, y + 29)))
 
 
     # Each star as a dot, or a streak from where it is to where it was a moment ago

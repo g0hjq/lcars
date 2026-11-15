@@ -79,6 +79,9 @@ PIVOT_Y = BASE_Y - 90               # where the pendulum hangs from, inside the 
 CLIP_Y = BASE_Y + SCALLOP           # the pendulum is seen only below the house
 CONE_W, CONE_H, HOOK_H = 64, 170, 22    # a pine-cone weight, and the ring on its top
 CHAIN_W, CHAIN_H = 16, 400
+EYE_Y = DIAL_Y                      # the clock is seen from level with the dial: so from below the
+                                    # roof (its underside shows) and from above the base (its top shows)
+SHELF_DEPTH = 18                    # how much of the base's top is seen, in front of the house
 
 
 ##==================================================================
@@ -233,6 +236,12 @@ def fract(x):
 ## THE HOUSE
 ##==================================================================
 
+# How much of the underside of the roof is seen, below its edge at height y: more, the higher
+# above the eye it is
+def soffitHeight(y):
+    return np.clip(0.1 * (EYE_Y - y), 3, 44)
+
+
 # How far each pixel is from the edge of each part of the house (minus inside)
 def roofDistance(xx, yy):
     ax = np.abs(xx - CX)
@@ -304,9 +313,25 @@ def drawWindow():
         pygame.draw.line(big, colour, (gx * SS, gy * SS + i), ((gx + gw) * SS - 1, gy * SS + i))
     pygame.draw.polygon(big, (110, 136, 156), [((gx + 6) * SS, (gy + gh) * SS), ((gx + 30) * SS, gy * SS),
                                                ((gx + 40) * SS, gy * SS), ((gx + 16) * SS, (gy + gh) * SS)])
+    # the glass is set back in the frame, which shades it along the top and the left, and the
+    # bars between the panes throw their shadows on it too
+    shade = pygame.Surface((gw * SS, gh * SS), pygame.SRCALPHA)
+    shade.fill((0, 0, 0, 0))
+    for i in range(8):
+        a = round(150 * (1 - i / 8) ** 1.5)
+        pygame.draw.line(shade, (0, 0, 0, a), (0, i * SS), (gw * SS, i * SS), SS)
+        pygame.draw.line(shade, (0, 0, 0, a), (i * SS, 0), (i * SS, gh * SS), SS)
+    pygame.draw.rect(shade, (0, 0, 0, 110), box(fw / 2 - 8 + 3, 0, 5, gh))
+    pygame.draw.rect(shade, (0, 0, 0, 110), box(0, gh / 2 - 2.5 + 4, gw, 5))
+    big.blit(shade, (gx * SS, gy * SS))
+    lit = tuple(min(255, int(c * 1.25)) for c in TRIM)
     pygame.draw.rect(big, TRIM, box(fx + fw / 2 - 2.5, gy, 5, gh))
     pygame.draw.rect(big, TRIM, box(gx, gy + gh / 2 - 2.5, gw, 5))
+    pygame.draw.rect(big, lit, box(fx + fw / 2 - 2.5, gy, 1.5, gh))
+    pygame.draw.rect(big, lit, box(gx, gy + gh / 2 - 2.5, gw, 1.5))
     pygame.draw.rect(big, dark, box(gx, gy, gw, gh), max(1, SS))
+    pygame.draw.line(big, lit, (fx * SS, (fy + 1) * SS), ((fx + fw) * SS, (fy + 1) * SS), SS)      # the frame's lit edges
+    pygame.draw.line(big, lit, ((fx + 1) * SS, fy * SS), ((fx + 1) * SS, (fy + fh) * SS), SS)
 
     # the flower box, and the geraniums in it
     bx, by, bw, bh = 2, fy + fh + 4, 92, 22
@@ -356,7 +381,9 @@ def drawHouse():
 
     # the shadows on it of the roof, the dial, the windows and the doorway's frame
     inner = APEX_Y + ROOF_THICKNESS + ax * ROOF_SLOPE
-    wall *= (1 - 0.55 * (1 - smoothstep(SCALLOP * 0.5, SCALLOP + 34, yy - inner)))[..., None]
+    cast = APEX_Y + ROOF_THICKNESS + np.abs(dx - 14) * ROOF_SLOPE + soffitHeight(inner) + 10
+    wall *= (1 - 0.62 * (1 - smoothstep(0, 46, yy - cast)))[..., None]
+    wall *= (1 - 0.3 * (1 - smoothstep(0, 10, WALL_HALF - ax)))[..., None]      # into the corners under the eaves
     wall *= (1 - 0.6 * (1 - smoothstep(DIAL_RADIUS - 14, DIAL_RADIUS + 20, np.hypot(dx - 9, yy - DIAL_Y - 13))))[..., None]
     for side in (-1, 1):
         d = roundedBox(xx, yy, CX + side * WINDOW_X + 6, WINDOW_Y + 22, 47, 68, 6)
@@ -380,10 +407,29 @@ def drawHouse():
 
     along = (ax + (yy - APEX_Y) * ROOF_SLOPE) / N
     below = (yy - inner) / N
+
+    # the underside of the roof where it stands out from the house, seen from below: dark boards
+    # going back to the wall, with the ends of the rafters between them, darker further in
+    soffit = soffitHeight(inner)
+    back = np.clip(below / np.maximum(soffit, 1), 0, 1)
+    soffitD = np.maximum.reduce([-below, below - soffit, ax - (ROOF_HALF - 4) + back * 10])
+    rafters = np.exp(-(((along + 13) % 52 - 26) / 3.5) ** 2)
+    underside = np.array(WOOD, np.float32) * (woodGrain(along, below, rng, vertical=False) * 0.42 * (1 - 0.45 * back) * (1 - 0.35 * rafters))[..., None]
+    lay(soffitD, underside)
+
     sx = (along % 26) / 26 - 0.5
     scallopD = np.maximum.reduce([-(below + 2), below - SCALLOP * np.sqrt(np.clip(1 - (2 * sx) ** 2, 0, 1)),
                                   ax - (ROOF_HALF - 10), 2.5 - np.hypot(sx * 26, below - SCALLOP * 0.45)])
     lay(scallopD, carved(scallopD, TRIM, 3, xx, yy, rng))
+
+    # --- the top of the base, standing out in front of the house: lit from above, darker at the
+    # back where it meets the house, and narrowing as it goes back
+    v = (BASE_TOP + 3 - yy) / SHELF_DEPTH            # 0 at its front edge, 1 at the back
+    topD = np.maximum.reduce([-v * SHELF_DEPTH, (v - 1) * SHELF_DEPTH, ax - (BASE_HALF - 4 - 10 * np.clip(v, 0, 1))])
+    upLit, _ = lighting(np.zeros_like(v), -np.ones_like(v), np.zeros_like(v) + 0.25)
+    shelf = np.array(TRIM, np.float32) * (woodGrain(xx, yy * 4, rng, vertical=False) * (0.35 + 0.75 * upLit)
+                                          * (1 - 0.45 * smoothstep(0.55, 1.0, v)))[..., None]
+    lay(topD, shelf)
 
     # --- the base, with a groove along it, and scallops under it too
     baseD = baseDistance(xx, yy)
@@ -430,7 +476,15 @@ def drawWall():
     gap = np.exp(-(bx / 1.3) ** 2) + np.exp(-((bx - boardW) / 1.3) ** 2)
     rgb *= (1 - 0.6 * gap + 0.1 * np.exp(-((bx - 3) / 1.5) ** 2))[..., None]
 
-    rgb *= (1 - 0.6 * (1 - smoothstep(-20, 50, houseDistance(xx - 26, yy - 32))))[..., None]
+    # the house's shadow, cast down and to the right: the parts that stand furthest out (the roof
+    # and the base) throw theirs furthest, and softest; and darker right round its edge, where
+    # it touches the wall
+    near = 1 - smoothstep(-16, 36, wallDistance(xx - 20, yy - 26))
+    roof = 1 - smoothstep(-26, 64, roofDistance(xx - 40, yy - 54))
+    base = 1 - smoothstep(-22, 54, baseDistance(xx - 34, yy - 46))
+    touch = 1 - smoothstep(-2, 16, houseDistance(xx, yy))
+    shadow = np.maximum.reduce([0.6 * near, 0.58 * roof, 0.62 * base, 0.4 * touch])
+    rgb *= (1 - shadow)[..., None]
     return toSurface(vignette(rgb, xx, yy, 0.4))
 
 

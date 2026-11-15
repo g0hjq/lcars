@@ -63,6 +63,11 @@ SCREEN_NOTICE_SECONDS = 2.5            # how long the volume is shown after it i
 SCREEN_VOLUMES = [("OFF", 0.0), ("LOW", 0.25), ("MEDIUM", 0.5), ("HIGH", 1.0)]
 SCREEN_VOLUME_ORDER = [1, 2, 3, 0]     # low, medium, high, off, and round again
 
+# How many samples the sound card is given at a time. Bigger stops the odd click when the Pi
+# is busy for a moment ("underrun occurred" in the journal), but every sound starts that much
+# later: 2048 is under 1/20 second. Powers of 2 only.
+SCREEN_SOUND_BUFFER = 2048
+
 # --- from lcars.py --------------------------------------------
 SCREEN_FRAME_RATE = 30
 
@@ -858,6 +863,14 @@ AQUARIUM_KINDS = {
 AQUARIUM_WATER_TOP = (48, 150, 176)
 AQUARIUM_WATER_BOTTOM = (8, 44, 84)
 AQUARIUM_NIGHT = (70, 84, 130)           # the tank at night is lit this much (multiplied)
+AQUARIUM_MOTES = 140                     # specks drifting in the water
+
+# The time, at the top left (None for AQUARIUM_CLOCK_SIZE: no time)
+AQUARIUM_CLOCK_SIZE = 120                # its font size
+AQUARIUM_CLOCK_LEFT = 64                 # its left edge...
+AQUARIUM_CLOCK_TOP = 60                  # ...and its top
+AQUARIUM_CLOCK_COLOUR = (236, 248, 255)  # (dimmer at night)
+AQUARIUM_HOURS_24 = True                 # False: 1 to 12
 
 
 ##==================================================================
@@ -891,6 +904,8 @@ VIEWSCREEN_BLUE = (132, 132, 255)
 VIEWSCREEN_AMBER_LIGHT = (255, 170, 60)    # the running lights at impulse...
 VIEWSCREEN_BLUE_LIGHT = (110, 175, 255)    # ...and at warp
 VIEWSCREEN_CHIRP_SECONDS = (5, 16)         # the consoles chirp every so often, between these many seconds apart
+VIEWSCREEN_CLOCK = True                    # the time, on the console under the screen
+VIEWSCREEN_HOURS_24 = True                 # False: 1 to 12
 
 
 ##==================================================================

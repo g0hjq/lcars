@@ -2,8 +2,10 @@
 aquarium.py
 
 A tropical fish tank: fish of several kinds swimming about at different depths, a school
-of tiny neon fish, plants swaying in the current, bubbles rising from an air stone, and
-sunlight rippling on the sand.
+of tiny neon fish, plants swaying in the current, bubbles rising from an air stone, specks
+drifting in the water, sunlight rippling on the sand and shimmering on the underside of the
+surface, a piece of driftwood, and more plants fading into the haze at the back. The time is
+at the top left.
 
 The OK button (or Enter) sprinkles food on the water. It sinks slowly, and the fish dart
 up to eat it.
@@ -17,9 +19,12 @@ its tail), the plants, bubbles and ripples as it goes.
 
 import datetime
 import math
+import os
 import random
+from collections import OrderedDict
 import numpy as np
 import pygame
+import fonts
 import screens as scr
 import synth
 from clock_frame.clock import ClockScreen
@@ -41,6 +46,12 @@ from settings import (
     AQUARIUM_WATER_TOP as WATER_TOP,
     AQUARIUM_WATER_BOTTOM as WATER_BOTTOM,
     AQUARIUM_NIGHT as NIGHT,
+    AQUARIUM_MOTES as MOTES,
+    AQUARIUM_CLOCK_SIZE as CLOCK_SIZE,
+    AQUARIUM_CLOCK_LEFT as CLOCK_LEFT,
+    AQUARIUM_CLOCK_TOP as CLOCK_TOP,
+    AQUARIUM_CLOCK_COLOUR as CLOCK_COLOUR,
+    AQUARIUM_HOURS_24 as HOURS_24,
 )
 
 W, H = scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT
@@ -136,7 +147,7 @@ def drawFish(kind, length, haze):
     body = L * 0.76                     # the body, without the tail
     tall = spec["tall"] * body
     fins = 1.0 if spec.get("bigFins") else 0.3
-    margin = L * 0.08                   # room for the tail to swing
+    margin = L * (0.2 if spec.get("bigFins") else 0.08)    # room for the tail to swing (and long fins to trail)
     w = int(L * 1.1 + margin)
     h = int(tall * (1 + 2 * fins) + 12 * ss)
     tailX = L * 0.27 + margin           # where the tail meets the body
@@ -207,10 +218,14 @@ def drawFish(kind, length, haze):
 
         # the fins on the back and the belly
         if spec.get("bigFins"):
-            back = [at(0.65, top(0.65)), at(0.45, midY - tall * 0.95), at(0.25, midY - tall * 1.4),
-                    at(0.17, midY - tall * 1.0), at(0.12, top(0.12))]
-            under = [at(0.6, bottom(0.6)), at(0.4, midY + tall * 0.95), at(0.22, midY + tall * 1.4),
-                     at(0.15, midY + tall * 1.0), at(0.1, bottom(0.1))]
+            # long and swept back, like an angelfish's, ending in points that trail past the tail
+            trail = swing * tall * 0.06
+            back = [at(0.62, top(0.62)), at(0.42, midY - tall * 0.98), at(0.18, midY - tall * 1.3),
+                    at(-0.04, midY - tall * 1.48 + trail), at(-0.1, midY - tall * 1.5 + trail * 2),
+                    at(-0.02, midY - tall * 1.05 + trail), at(0.04, midY - tall * 0.62), at(0.08, top(0.08))]
+            under = [at(0.56, bottom(0.56)), at(0.38, midY + tall * 0.96), at(0.16, midY + tall * 1.26),
+                     at(-0.04, midY + tall * 1.44 + trail), at(-0.1, midY + tall * 1.46 + trail * 2),
+                     at(-0.02, midY + tall * 1.02 + trail), at(0.04, midY + tall * 0.6), at(0.08, bottom(0.08))]
         else:
             back = [at(0.72, top(0.72)), at(0.5, top(0.5) - tall * 0.34), at(0.32, top(0.32) - tall * 0.24),
                     at(0.2, top(0.2) - tall * 0.1), at(0.16, top(0.16))]
@@ -338,6 +353,83 @@ def addRock(rgb, cx, cy, rx, ry, rng, pebble=False):
     rgb[y0:y1, x0:x1] = region * (1 - cover[..., None]) + colour * cover[..., None]
 
 
+# Silhouettes of plants and rocks at the back of the tank, soft and pale with the distance,
+# their tops fading into the water
+def addHaze(rgb, sandEdge, rng):
+    small = pygame.Surface((W // 4, H // 4))
+    small.fill((0, 0, 0))
+    base = (SAND_TOP - 40) / 4
+    for _ in range(46):
+        x = rng.uniform(0, W / 4)
+        height = rng.uniform(40, 150)
+        lean = rng.uniform(-0.25, 0.25)
+        for _ in range(int(rng.integers(3, 8))):
+            bend = lean + rng.uniform(-0.25, 0.25)
+            tall = height * rng.uniform(0.5, 1.0)
+            points = [(x + bend * tall * f * f * 1.6 - 1.4 * (1 - f), base - tall * f) for f in np.linspace(0, 1, 8)]
+            points += [(px + 2.8 * (1 - f) + 0.3, py) for (px, py), f in zip(points[::-1], np.linspace(1, 0, 8))]
+            pygame.draw.polygon(small, (255, 255, 255), points)
+    for _ in range(9):
+        cx, rx = rng.uniform(0, W / 4), rng.uniform(15, 45)
+        pygame.draw.ellipse(small, (255, 255, 255), (cx - rx, base - rx * 0.5, 2 * rx, rx * 1.2))
+    small = pygame.transform.smoothscale(pygame.transform.smoothscale(small, (W // 16, H // 16)), (W // 4, H // 4))
+    shape = pygame.transform.smoothscale(small, (W, H))
+    m = pygame.surfarray.array_red(shape).T.astype(np.float32) / 255
+    yy = np.arange(H, dtype=np.float32)[:, None]
+    m *= np.clip((yy - 200) / 500, 0, 1) * (yy < sandEdge)          # fading away towards the top
+    far = np.array([20, 70, 80], dtype=np.float32)
+    return rgb * (1 - 0.42 * m[..., None]) + far * (0.42 * m[..., None])
+
+
+# A twisted piece of driftwood lying on the sand, its branches reaching up, with grooves in
+# its bark, lit from above. Drawn into the picture rgb.
+def addDriftwood(rgb, rng):
+    height = np.zeros((H, W), np.float32)
+    along = np.zeros((H, W), np.float32)            # how far along its branch each pixel is, for the grain
+
+    def branch(points, r0, r1):
+        path = np.array(rounded(points, 3))
+        steps = np.hypot(*np.diff(path, axis=0).T)
+        total = steps.sum()
+        done = 0.0
+        for (x0, y0), (x1, y1), step in zip(path, path[1:], steps):
+            for f in np.linspace(0, 1, max(2, int(step / 2)), endpoint=False):
+                x, y = x0 + (x1 - x0) * f, y0 + (y1 - y0) * f
+                r = r0 + (r1 - r0) * (done + step * f) / total
+                ax0, ax1, ay0, ay1 = int(x - r - 1), int(x + r + 2), int(y - r - 1), int(y + r + 2)
+                if ax1 <= 0 or ay1 <= 0 or ax0 >= W or ay0 >= H:
+                    continue
+                ax0, ay0, ax1, ay1 = max(0, ax0), max(0, ay0), min(W, ax1), min(H, ay1)
+                gy, gx = np.mgrid[ay0:ay1, ax0:ax1].astype(np.float32)
+                dome = np.sqrt(np.clip(r * r - (gx - x) ** 2 - (gy - y) ** 2, 0, None))
+                region = height[ay0:ay1, ax0:ax1]
+                higher = dome > region
+                region[higher] = dome[higher]
+                along[ay0:ay1, ax0:ax1][higher] = done + step * f
+            done += step
+
+    branch([(470, 930), (560, 905), (650, 860), (720, 790), (760, 700), (800, 620), (850, 560)], 34, 9)
+    branch([(640, 870), (600, 800), (585, 720), (560, 660)], 18, 6)
+    branch([(735, 765), (800, 735), (870, 700), (930, 690)], 15, 5)
+    branch([(780, 650), (760, 600), (775, 545)], 10, 4)
+    branch([(520, 920), (470, 880), (430, 860)], 16, 7)
+
+    inside = height > 0
+    gy, gx = np.gradient(height)
+    length = np.sqrt(gx * gx + gy * gy + 1)
+    light = np.array([-0.3, -0.85, 0.45])
+    light /= np.linalg.norm(light)
+    diffuse = np.clip((-gx * light[0] - gy * light[1] + light[2]) / length, 0, 1)
+    grooves = 0.75 + 0.25 * np.sin(height * 0.9 + np.sin(along * 0.05) * 3) ** 2
+    grain = 1 + 0.1 * np.sin(along * 0.35 + height * 0.3)
+    wood = np.array([96, 70, 46], dtype=np.float32) * ((0.28 + 0.9 * diffuse) * grooves * grain)[..., None]
+    edge = np.clip(height / 2, 0, 1)[..., None]
+    shadow = np.zeros_like(height)
+    shadow[14:, 10:] = (height[:-14, :-10] > 0) * 0.35
+    rgb *= (1 - shadow * (~inside))[..., None]
+    rgb[:] = rgb * (1 - edge) + wood * edge
+
+
 def drawTank():
     rng = np.random.default_rng(21)
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
@@ -357,6 +449,9 @@ def drawTank():
     # the surface: a brighter band at the top
     rgb += (np.clip(1 - yy / SURFACE, 0, 1) ** 2 * 70)[..., None]
 
+    # far at the back, more plants and rocks, lost in the blue haze
+    rgb = addHaze(rgb, edge, rng)
+
     # darker in the corners, as seen through the glass
     corner = ((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2
     rgb *= (1 - 0.35 * np.clip(corner - 0.4, 0, 1))[..., None]
@@ -364,6 +459,8 @@ def drawTank():
     for cx, cy, rx, ry in ((980, 952, 74, 44), (430, 935, 104, 64), (1540, 940, 94, 58), (1380, 910, 150, 96),
                            (260, 905, 176, 114)):
         addRock(rgb, cx, cy, rx, ry, rng)
+        if cx == 980:
+            addDriftwood(rgb, rng)
     for _ in range(140):
         size = rng.uniform(4, 13)
         addRock(rgb, rng.uniform(20, W - 20), rng.uniform(905, H - 5), size, size * rng.uniform(0.55, 0.8), rng, pebble=True)
@@ -399,12 +496,14 @@ def drawRay(width, rng):
 class Plant:
     """A clump of leaves that sway in the current: long ribbons, or broader pointed blades.
     Each leaf is shaded in strips down its two halves, darker at its foot and paler and more
-    see-through towards its tip, and twisting, so one half and then the other catches the light."""
-
-    SEGMENTS = 9
+    see-through towards its tip, and twisting, so one half and then the other catches the light.
+    Those at the front are drawn in more pieces, with smoothed edges; the hazy ones at the back
+    in fewer."""
 
     def __init__(self, x, y, height, colour, far):
         self.x, self.y = x, y
+        self.segments = 8 if far else 13
+        self.smooth = not far
         colour = shade(mix(colour, WATER_BOTTOM, 0.45), 0.85) if far else colour
         broad = random.random() < 0.4
         self.leaves = []
@@ -414,18 +513,19 @@ class Plant:
                         broad=broad, phase=random.uniform(0, 6.3), sway=random.uniform(0.12, 0.25))
             twist, turn = random.uniform(2, 5), random.uniform(0, 6.3)
             leaf["colours"] = []
-            for i in range(self.SEGMENTS):
-                f = (i + 0.5) / self.SEGMENTS
+            for i in range(self.segments):
+                f = (i + 0.5) / self.segments
                 tw = math.sin(f * twist + turn)
                 along = 0.62 + 0.55 * f
                 left = mix(shade(colour, along * (0.84 + 0.16 * tw)), (190, 230, 160), 0.12 * f)
                 right = mix(shade(colour, along * (0.84 - 0.16 * tw)), (190, 230, 160), 0.12 * f)
                 leaf["colours"].append((left, right))
             leaf["vein"] = shade(colour, 1.25)
+            leaf["edge"] = shade(colour, 0.8)
             self.leaves.append(leaf)
 
     def draw(self, surface, t):
-        n = self.SEGMENTS
+        n = self.segments
         for leaf in self.leaves:
             step = leaf["height"] / n
             x, y = self.x, self.y
@@ -447,15 +547,42 @@ class Plant:
             for i, (leftColour, rightColour) in enumerate(leaf["colours"]):
                 pygame.draw.polygon(surface, leftColour, (left[i], middle[i], middle[i + 1], left[i + 1]))
                 pygame.draw.polygon(surface, rightColour, (middle[i], right[i], right[i + 1], middle[i + 1]))
+            if self.smooth:
+                pygame.draw.aalines(surface, leaf["edge"], False, left)
+                pygame.draw.aalines(surface, leaf["edge"], False, right)
             pygame.draw.lines(surface, leaf["vein"], False, middle[:-1], 1)
+
+
+# A bubble of each size, in half pixels: clear, with a bright rim (brightest underneath, where
+# the light comes through it), a glint at the top left and a fainter one opposite
+def drawBubbles():
+    pictures = {}
+    for half in range(3, 25):
+        r = half / 2
+        size = int(2 * r + 4)
+        yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+        c = size / 2
+        d = np.hypot(xx + 0.5 - c, yy + 0.5 - c) / r
+        rim = np.exp(-((d - 0.92) / 0.12) ** 2) * (0.6 + 0.4 * np.clip((yy - c) / r, 0, 1))
+        body = (d < 1) * 0.12
+        glint = np.exp(-(np.hypot(xx + 0.5 - (c - 0.38 * r), yy + 0.5 - (c - 0.4 * r)) / max(0.7, 0.2 * r)) ** 2)
+        glint2 = 0.4 * np.exp(-(np.hypot(xx + 0.5 - (c + 0.4 * r), yy + 0.5 - (c + 0.45 * r)) / max(0.6, 0.15 * r)) ** 2)
+        alpha = np.clip(rim * 0.9 + body + glint + glint2, 0, 1) * 255
+        rgba = np.zeros((size, size, 4), np.uint8)
+        rgba[..., :3] = (225, 248, 255)
+        rgba[..., 3] = alpha.astype(np.uint8)
+        pictures[half] = pygame.image.frombuffer(rgba.tobytes(), (size, size), "RGBA").convert_alpha()
+    return pictures
 
 
 class Bubble:
 
+    pictures = None                     # see drawBubbles
+
     def __init__(self, x, y):
         self.x, self.y = x, y
-        self.r = random.uniform(2.5, 8)
-        self.speed = random.uniform(110, 180)
+        self.r = random.uniform(2.5, 8) if random.random() < 0.3 else random.uniform(1.5, 3.5)
+        self.speed = 80 + 18 * self.r + random.uniform(-15, 15)
         self.phase = random.uniform(0, 6.3)
 
     def update(self, dt):
@@ -465,9 +592,65 @@ class Bubble:
         return self.y > SURFACE
 
     def draw(self, surface):
-        x = self.x + math.sin(self.phase) * 3
-        pygame.draw.circle(surface, (210, 245, 255), (x, self.y), self.r, 1 if self.r < 5 else 2)
-        pygame.draw.circle(surface, (255, 255, 255), (x - self.r * 0.35, self.y - self.r * 0.35), max(1, self.r * 0.25))
+        x = self.x + math.sin(self.phase) * (1 + self.r * 0.5)
+        picture = self.pictures[max(3, min(24, round(self.r * 2)))]
+        surface.blit(picture, picture.get_rect(center=(x, self.y)))
+
+
+# A speck drifting in the water: bits of plant and food, lit from above. The near ones are a
+# little bigger and brighter; all wander slowly with the current.
+class Mote:
+
+    def __init__(self):
+        self.depth = random.random()        # 0 near, 1 far
+        self.x, self.y = random.uniform(0, W), random.uniform(SURFACE, SAND_TOP)
+        self.size = 2 if self.depth < 0.25 else 1
+        level = int(26 + 34 * (1 - self.depth) * random.uniform(0.5, 1))
+        self.colour = (level, level, int(level * 0.9))
+        self.phase = random.uniform(0, 6.3)
+        self.drift = random.uniform(-6, 6)
+
+    def update(self, dt, t):
+        scale = 1 - 0.6 * self.depth
+        self.x += (self.drift + 5 * math.sin(t * 0.13 + self.phase)) * scale * dt
+        self.y += (2.5 + 4 * math.sin(t * 0.21 + self.phase * 1.7)) * scale * dt
+        if self.y > SAND_TOP:
+            self.y = SURFACE + 10
+        self.x %= W
+
+    def draw(self, surface):
+        surface.fill(self.colour, (self.x, self.y, self.size, self.size), special_flags=pygame.BLEND_RGB_ADD)
+
+
+# The underside of the water's surface, seen from below: it shimmers like a wrinkled mirror.
+# Drawn once, twice as wide as the screen, and slid along in two layers at different speeds.
+def drawSurfaceShimmer():
+    h = SURFACE + 34
+    yy, xx = np.mgrid[0:h, 0:2 * W].astype(np.float32)
+    k = 2 * math.pi / W                     # so that it joins up after a whole width
+    a = np.sin(xx * k * 37 + 2.0 * np.sin(xx * k * 11 + yy * 0.09))
+    b = np.sin(xx * k * 23 - yy * 0.12 + 1.6 * np.sin(xx * k * 7 + 1.0))
+    net = np.clip(1 - np.abs(a + b) * 1.2, 0, 1) ** 2
+    fade = np.clip(1 - yy / h, 0, 1) ** 1.6
+    light = net * fade * 60 + fade ** 3 * 18
+    rgb = (light[..., None] * np.array([0.82, 0.96, 1.0])).astype(np.uint8)
+    return pygame.surfarray.make_surface(rgb.transpose(1, 0, 2))
+
+
+# The fish turned a little nose up or down, kept so that they need only be turned once
+ROTATED = OrderedDict()
+
+def tilted(image, angle):
+    key = (id(image), angle)
+    picture = ROTATED.get(key)
+    if picture is None:
+        picture = pygame.transform.rotozoom(image, angle, 1)
+        ROTATED[key] = picture
+        if len(ROTATED) > 500:
+            ROTATED.popitem(last=False)
+    else:
+        ROTATED.move_to_end(key)
+    return picture
 
 
 class Flake:
@@ -595,8 +778,9 @@ class Fish:
 
         # nose up when rising, down when sinking
         tilt = max(-18, min(18, math.degrees(math.atan2(-self.vy, abs(self.vx) + 25)))) * self.facing
-        if abs(tilt) >= 2 and self.turning >= 1:
-            image = pygame.transform.rotozoom(image, round(tilt), 1)
+        tilt = round(tilt / 2) * 2
+        if tilt and self.turning >= 1:
+            image = tilted(image, tilt)
 
         if self.turning < 1:
             # seen edge on halfway through a turn
@@ -624,6 +808,36 @@ class School:
         else:
             self.x += dx / distance * 70 * dt
             self.y += dy / distance * 40 * dt
+
+
+##==================================================================
+## THE TIME
+##==================================================================
+
+# The font of the time (Antonio, as on the other screens), or None for no time
+def clockFont():
+    if not CLOCK_SIZE:
+        return None
+    path = os.path.join(fonts.FONT_FOLDER, "Antonio-Regular.ttf")
+    try:
+        return pygame.font.Font(path, CLOCK_SIZE)
+    except (pygame.error, OSError):
+        return pygame.font.SysFont("arial", CLOCK_SIZE)
+
+
+# Text with a soft dark shadow under it, 12 pixels in from the picture's top left
+def softText(font, text, colour):
+    image = font.render(text, True, colour)
+    w, h = image.get_width() + 24, image.get_height() + 24
+    shadow = pygame.Surface((w, h), pygame.SRCALPHA)
+    shadow.fill((0, 0, 0, 0))
+    dark = font.render(text, True, (0, 20, 40))
+    shadow.blit(dark, (14, 15))
+    shadow = pygame.transform.smoothscale(pygame.transform.smoothscale(shadow, (w // 6, h // 6)), (w, h))
+    shadow.fill((255, 255, 255, 150), special_flags=pygame.BLEND_RGBA_MULT)
+    image.set_alpha(225)
+    shadow.blit(image, (12, 12))
+    return shadow
 
 
 ##==================================================================
@@ -666,6 +880,12 @@ class AquariumScreen(scr.Screen):
                             for x in (90, 230, 1720, 1850, 640)]
 
         self.bubbles = []
+        Bubble.pictures = drawBubbles()
+        self.motes = [Mote() for _ in range(MOTES)]
+        self.shimmer = drawSurfaceShimmer()
+        self.clockFont = clockFont()
+        self.clockKey = None
+        self.clockImage = None
         self.flakes = []
         self.night = None
         self.nightTint = pygame.Surface((W, H))
@@ -727,9 +947,11 @@ class AquariumScreen(scr.Screen):
         for fish in self.fish:
             fish.update(dt, self.flakes, night)
 
-        if random.random() < dt * 9:
+        if random.random() < dt * 16:
             self.bubbles.append(Bubble(1675 + random.uniform(-12, 12), 935))
         self.bubbles = [b for b in self.bubbles if b.update(dt)]
+        for mote in self.motes:
+            mote.update(dt, t)
         self.flakes = [f for f in self.flakes if f.update(dt, t)]
 
 
@@ -779,11 +1001,33 @@ class AquariumScreen(scr.Screen):
         for bubble in self.bubbles:
             bubble.draw(surface)
 
-        # the moving glints of light on the underside of the surface
-        for i in range(3):
-            points = [(x, SURFACE - 6 + 4 * math.sin(x / (70 + i * 23) + t * (1.2 + i * 0.3)) + i * 4)
-                      for x in range(0, W + 40, 40)]
-            pygame.draw.lines(surface, (190, 235, 245), False, points, 2)
+        for mote in self.motes:
+            mote.draw(surface)
+
+        # the underside of the surface, shimmering, and the water line along it
+        for speed, flip in ((23, 0), (-37, 1)):
+            x = int(t * speed) % W
+            surface.blit(self.shimmer, (-x, -flip * 6), special_flags=pygame.BLEND_RGB_ADD)
+        points = [(x, SURFACE - 4 + 3 * math.sin(x / 83 + t * 1.3) + 2 * math.sin(x / 37 - t * 1.7))
+                  for x in range(0, W + 40, 40)]
+        pygame.draw.lines(surface, (170, 222, 236), False, points, 2)
 
         if self.night:
             surface.blit(self.nightTint, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+
+        self.drawClock(surface)
+
+
+    # The time at the top left, with a soft shadow, made again each minute
+    def drawClock(self, surface):
+        if not self.clockFont:
+            return
+        now = datetime.datetime.now()
+        key = (now.hour, now.minute, self.night)
+        if key != self.clockKey:
+            self.clockKey = key
+            hour = now.hour if HOURS_24 else (now.hour % 12 or 12)
+            text = f"{hour:02d}:{now.minute:02d}" if HOURS_24 else f"{hour}:{now.minute:02d}"
+            colour = CLOCK_COLOUR if not self.night else tuple(int(c * 0.55) for c in CLOCK_COLOUR)
+            self.clockImage = softText(self.clockFont, text, colour)
+        surface.blit(self.clockImage, (CLOCK_LEFT - 12, CLOCK_TOP - 12))

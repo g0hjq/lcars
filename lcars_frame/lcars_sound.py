@@ -24,6 +24,7 @@ SAMPLE_RATE = 44100
 # Its settings are in settings.py (next to lcars.py)
 from settings import (
     LCARS_SOUND_VOLUME as VOLUME,
+    SCREEN_SOUND_BUFFER,
 )
 FADE_SECONDS = 0.008        # each note fades in and out over this long, which stops the clicks
 
@@ -79,7 +80,7 @@ def initSound():
 
     try:
         pygame.mixer.quit()
-        pygame.mixer.init(frequency=SAMPLE_RATE, size=-16, channels=2)
+        pygame.mixer.init(frequency=SAMPLE_RATE, size=-16, channels=2, buffer=SCREEN_SOUND_BUFFER)
 
         for name, notes in SOUNDS.items():
             sounds[name] = makeSound(notes)

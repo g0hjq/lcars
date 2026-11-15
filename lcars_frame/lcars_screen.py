@@ -428,7 +428,7 @@ def buildShortRangeScan(surface, x, y):
     y1 += 30
     shapes["SRS_PRECIP"] = ls.Bar(surface, x, y1, 500, 26, ls.Colours.BACKGROUND, "", ls.Alignment.LEFT, fonts.TextSize.MEDIUM)    
 
-    shapes["SRS_IMAGE"] = ls.Image(surface, x+550, y+100, None)
+    shapes["SRS_IMAGE"] = ls.Image(surface, x+550, y+60, None)
 
 
 
