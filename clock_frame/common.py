@@ -95,6 +95,15 @@ class Face:
     def enter(self):
         pass
 
+    # Every frame, whether it is shown or not, once it has been drawn
+    def housekeeping(self, now):
+        pass
+
+    # A button or key the clock doesn't use itself, while this face is shown: returns the
+    # words of a notice to show if it did something, or None
+    def handleEvent(self, event):
+        return None
+
     def update(self, now):
         pass
 

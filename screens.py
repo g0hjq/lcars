@@ -47,6 +47,11 @@ OK_PRESSED = pygame.event.custom_type()
 OK_HELD = pygame.event.custom_type()
 SOUND_HELD = pygame.event.custom_type()
 
+# Posted by the TIME button (if there is one, see gpio_buttons.py), pressed or held down, and
+# passed on to the screen that is shown (the city clock shows itself an hour later, or now)
+TIME_PRESSED = pygame.event.custom_type()
+TIME_HELD = pygame.event.custom_type()
+
 
 class Screen:
 

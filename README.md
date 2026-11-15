@@ -14,7 +14,7 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
 - **Biomonitor**: the sickbay biomonitor, with a row of dials whose pointers drift around
   their normal ranges, and lamps that flash with the breathing and the heartbeat (which you
   can hear).
-- **Clock**: a big clock, with five faces that the OK button goes round:
+- **Clock**: a big clock, with seven faces that the OK button goes round:
   - **Brass**: an old brass clock with Roman numerals, blued steel hands, a moon-phase window
     and windows for the day, the date and the month. It ticks, chimes the Westminster Quarters
     and strikes the hour.
@@ -29,15 +29,38 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
     before each hour.
   - **Flip**: a 1970s flip clock whose cards fall over with a clack, with the day, the date
     and the month below.
+  - **Cuckoo**: a Black Forest cuckoo clock on a knotty pine wall, with a swinging pendulum and
+    two pine-cone weights that go down through the day. On the hour the doors under the roof
+    open and the cuckoo comes out to call the hour; at half past it calls once.
+  - **City**: a made-up city across a street, with the time in the top right corner. A new
+    city is made each night at 3am (`CITY_NEW_CITY_HOUR`).
+    - The sky follows the real sun and moon where you are (`WEATHER_LAT` and `WEATHER_LON`):
+      blue by day, gold and pink at sunset, then stars and the moon in its right phase.
+    - The light is the sun's: the sides of the buildings that face it glow at either end of
+      the day, the window panes reflect the sky, and the clouds are lit from above by day and
+      from below at sunset.
+    - As it gets dark the street lamps come on, shining on the damp road, and so do the
+      windows, throwing their light on the walls round them: homes until bedtime, offices
+      until people go home, shops until they close.
+    - Cars, vans, black taxis and buses, made in 3D, keep to the left (`CITY_DRIVE_ON_LEFT`)
+      and brake for each other, with their lights on after dark. They catch the light as
+      they pass under the lamps. The vehicles are made after the face is first shown, so
+      the traffic builds up over its first half minute.
+    - People walk along the pavement, clouds drift by, birds and aeroplanes cross the sky
+      now and then, and steam rises from the roofs. A distant bell strikes the hours.
+    - To see it at another time of day, press the TIME button (or T, or tap the clock): each
+      press goes an hour later, with the time in amber. Holding TIME (or R) goes back to now,
+      as it does by itself after a minute.
 
   Chimes are heard even behind the other screens; ticks only while the clock is shown. On the
   clock the SOUND button sets only how loud the ticks are (LOWER, LOW, MEDIUM, HIGH or OFF):
   the chimes always play at full volume, and holding SOUND down turns them off, or back on.
   Both are for the whole clock, whichever face is shown. Holding OK down plays the last chime
-  again. It is silent from midnight to 9am. Each face is drawn the first time it is shown,
+  again. It is silent from a minute past midnight to a minute before 9am, so the midnight
+  chime and the 9 o'clock one are heard. Each face is drawn the first time it is shown,
   which takes a few seconds. Its settings (which faces, the sound, the quiet hours, and each
-  face's colours and sizes) are the `CLOCK_`, `BRASS_`, `RAILWAY_`, `DECO_`, `NIXIE_` and
-  `FLIP_` ones in `settings.py`.
+  face's colours and sizes) are the `CLOCK_`, `BRASS_`, `RAILWAY_`, `DECO_`, `NIXIE_`,
+  `FLIP_`, `CUCKOO_` and `CITY_` ones in `settings.py`.
 - **Departures board**: an old split-flap board, like a station's or an airport's, listing the
   aircraft your receiver can hear: flight, from, to, distance, height and what it is doing.
   It is brought up to date every 10 seconds (`DEPARTURES_UPDATE_SECONDS` in `settings.py`),
@@ -95,6 +118,15 @@ and the month below the middle.*
 ![The flip clock](docs/clock_flip.jpg)
 *The flip face, a 1970s flip clock.*
 
+![The cuckoo clock](docs/clock_cuckoo.jpg)
+*The cuckoo face, whose cuckoo comes out of the doors under the roof to call the hours.*
+
+![The city clock at dusk](docs/clock_city.jpg)
+*The city face at dusk, the lights coming on and the traffic's lamps lit.*
+
+![The city clock at night](docs/clock_city_night.jpg)
+*The city face at night. The buildings are made up afresh each night.*
+
 ![The departures board](docs/departures.png)
 *The departures board, showing the LCARS screen's made-up test aircraft. From and To are only
 filled in for flights to or from your own airport.*
@@ -110,8 +142,8 @@ filled in for flights to or from your own airport.*
 
 - A Raspberry Pi (it was written on a Pi 5) running Raspberry Pi OS, with a 1920×1080 screen
   on HDMI. It runs without a desktop, drawing straight to the screen.
-- Optional: three push buttons on the GPIO pins (see [Buttons](#buttons)). A keyboard does
-  the same.
+- Optional: three push buttons on the GPIO pins, and a fourth for the city clock's TIME
+  button (see [Buttons](#buttons)). A keyboard does the same.
 - Optional: an ADS-B receiver running dump1090 (for example a Flightradar24 feeder) for the
   aircraft radar.
 - Optional: a DeviantArt API key for the picture frame, and a Google account for the calendar.
@@ -213,6 +245,7 @@ Then:
 ```bash
 ./enable_service.sh     # start it now, and at every boot
 ./disable_service.sh    # stop it, and don't start it at boot
+./restart_service.sh    # restart it, after changing the program or its settings
 journalctl -u lcars -f  # see what it is doing
 ```
 
@@ -236,15 +269,18 @@ used, so nothing else is needed.
 | NEXT | GPIO17 (pin 11) | Right arrow | next screen, going round them all |
 | OK, pressed briefly | GPIO27 (pin 13) | Enter or space | depends on the screen: see below |
 | OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: play the face's last chime again |
+| TIME, pressed briefly (optional) | GPIO23 (pin 16) | T (or tap the clock) | city clock: show the city an hour later than the one shown, for a minute |
+| TIME, held for 2 seconds | GPIO23 (pin 16) | R | city clock: back to now |
 | | | Esc or Q | quit (the service starts it again) |
 
-Ground is pin 9, 14 or 20.
+Ground is pin 9, 14 or 20. The TIME button is optional: `BUTTONS_TIME_PIN` in `settings.py`
+sets its pin, or None if there isn't one.
 
 What a brief press of OK does on each screen:
 
 - LCARS: new colours
 - DeviantArt frame: the next picture
-- Clock: the next face (brass, railway, deco, Nixie, flip)
+- Clock: the next face (brass, railway, deco, Nixie, flip, cuckoo, city)
 - Aquarium: feeds the fish
 - Viewscreen: goes to warp, or drops out of it
 
@@ -261,10 +297,12 @@ my_settings_example.py   made-up settings, to copy to my_settings.py
 lcars.service            the systemd service
 enable_service.sh        start the service, and at boot
 disable_service.sh       stop the service, and not at boot
+restart_service.sh       restart the service, to pick up changes
 lcars_frame/             the LCARS screen, and the weather, calendar and aircraft it shows
 deviantart_frame/        the DeviantArt picture frame, and its downloader
 biomonitor_frame/        the biomonitor screen, with its pointer, font and heartbeat
-clock_frame/             the clock screen (clock.py), its five faces, and what they share (common.py)
+clock_frame/             the clock screen (clock.py), its seven faces, what they share
+                         (common.py), and the city face's 3D vehicles (vehicles.py)
 departures_frame/        the split-flap departures board
 aquarium_frame/          the fish tank
 viewscreen_frame/        the bridge viewscreen, its warp jumps and its made-up planets
@@ -301,7 +339,8 @@ the repository (see `.gitignore`):
    screen's (`MINE_...`), and import them with `from settings import MINE_SPEED as SPEED`.
 
 It can also react to the buttons with `handleEvent(self, event)`, which gets the `OK_PRESSED`,
-`OK_HELD` and `SOUND_HELD` events from `screens.py`.
+`OK_HELD`, `SOUND_HELD`, `TIME_PRESSED` and `TIME_HELD` events from `screens.py`, and any key
+the main loop doesn't use itself.
 
 If it makes any sound, set `hasSound = True` in the class, return its pygame Sounds from
 `soundList()` (as `(sound, 1.0)` pairs) so that the SOUND button can set their volume, and

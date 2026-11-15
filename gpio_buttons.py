@@ -1,7 +1,7 @@
 """
 gpio_buttons.py
 
-Three push buttons on the Raspberry Pi's GPIO pins. Each one is wired between its pin and
+Three (or four) push buttons on the Raspberry Pi's GPIO pins. Each one is wired between its pin and
 a ground (GND) pin: the Pi's own pull-up resistor holds the pin high, and pressing the
 button pulls it low. No resistors are needed.
 
@@ -13,6 +13,8 @@ button pulls it low. No resistors are needed.
                                               passed on to the screen shown (the DeviantArt
                                               frame moves on to the next picture, or deletes
                                               the one it is showing)
+    TIME_PIN      GPIO23  (physical pin 16)   optional: pressed briefly, the city clock shows the
+                                              city an hour later; held down, back to now
     ground        GND     (physical pin 9, 14 or 20)
 
 A press of the NEXT button posts screens.NEXT_SCREEN, which the main loop handles just
@@ -34,6 +36,7 @@ from settings import (
     BUTTONS_SOUND_PIN as SOUND_PIN,
     BUTTONS_NEXT_PIN as NEXT_PIN,
     BUTTONS_OK_PIN as OK_PIN,
+    BUTTONS_TIME_PIN as TIME_PIN,
     BUTTONS_HOLD_SECONDS as HOLD_SECONDS,
     BUTTONS_BOUNCE_SECONDS as BOUNCE_SECONDS,
 )
@@ -85,9 +88,12 @@ def startButtons():
     buttons = []
 
     # (pin, the event when pressed, and the event when held down: None if it can't be held)
-    for pin, eventType, heldType in ((SOUND_PIN, scr.TOGGLE_SOUND, scr.SOUND_HELD),
-                                     (NEXT_PIN, scr.NEXT_SCREEN, None),
-                                     (OK_PIN, scr.OK_PRESSED, scr.OK_HELD)):
+    pins = [(SOUND_PIN, scr.TOGGLE_SOUND, scr.SOUND_HELD),
+            (NEXT_PIN, scr.NEXT_SCREEN, None),
+            (OK_PIN, scr.OK_PRESSED, scr.OK_HELD)]
+    if TIME_PIN is not None:
+        pins.append((TIME_PIN, scr.TIME_PRESSED, scr.TIME_HELD))
+    for pin, eventType, heldType in pins:
         try:
             button = Button(pin, pull_up=True, bounce_time=BOUNCE_SECONDS, hold_time=HOLD_SECONDS)
         except Exception as exc:

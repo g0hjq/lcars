@@ -23,6 +23,8 @@ Every setting of the program, in one place, a section for each part of it:
     CLOCK: DECO FACE                                DECO_...
     CLOCK: NIXIE FACE                               NIXIE_...
     CLOCK: FLIP FACE                                FLIP_...
+    CLOCK: CUCKOO FACE                              CUCKOO_...
+    CLOCK: CITY FACE                                CITY_...
     AQUARIUM                                        AQUARIUM_...
     VIEWSCREEN                                      VIEWSCREEN_...
     YOUR OWN SETTINGS                               (from my_settings.py, at the end)
@@ -74,6 +76,8 @@ SCREEN_FRAME_RATE = 30
 BUTTONS_SOUND_PIN = 22                  # (it was the PREVIOUS button)
 BUTTONS_NEXT_PIN = 17
 BUTTONS_OK_PIN = 27
+BUTTONS_TIME_PIN = 23                   # optional fourth button (physical pin 16 to GND): on the city clock, an hour
+                                        # later each press, held down back to now. None if there isn't one.
 BUTTONS_HOLD_SECONDS = 2            # how long the OK or SOUND button must be held down
 BUTTONS_BOUNCE_SECONDS = 0.10       # a press within this long of the last is taken as contact bounce
 
@@ -488,7 +492,7 @@ BIOMONITOR_GAMMA = 3.5
 
 # The faces, in the order the OK button goes round them. The first is shown when the program
 # starts. Leave out any you don't want.
-CLOCK_FACES = ["BRASS", "RAILWAY", "DECO", "NIXIE", "FLIP"]
+CLOCK_FACES = ["BRASS", "RAILWAY", "DECO", "NIXIE", "FLIP", "CUCKOO", "CITY"]
 
 # --- Sound ----------------------------------------------------------
 
@@ -505,8 +509,9 @@ CLOCK_TICK_VOLUME_ORDER = [1, 2, 3, 4, 0]   # lower, low, medium, high, off, and
 
 # --- Quiet hours (the aquarium dims its light then too) ------------
 
-CLOCK_QUIET_FROM = 0                # no ticks or chimes from this hour (0 is midnight)...
-CLOCK_QUIET_UNTIL = 9               # ...until this one, so the 9 o'clock chime is the first of the day
+CLOCK_QUIET_FROM = "00:01"          # no ticks or chimes from this time ("HH:MM", or a whole hour like 0)...
+CLOCK_QUIET_UNTIL = "08:59"         # ...until this one, so the midnight chime and the 9 o'clock one (and the pips
+                                    # just before it) are heard
 
 # --- Notices --------------------------------------------------------
 
@@ -701,6 +706,103 @@ FLIP_RECESS = (12, 12, 13)          # the black window the cards are in
 FLIP_CASE = (234, 230, 220)
 FLIP_TEAK = (118, 66, 34)           # the sideboard
 FLIP_TEXT_COLOUR = (240, 200, 140)  # the notice in the corner at night
+
+
+##==================================================================
+## CLOCK: CUCKOO FACE (clock_frame/cuckoo.py)
+##==================================================================
+
+# --- What it does ---------------------------------------------------
+
+CUCKOO_BEATS = 1                    # the pendulum ticks this many times a second, once at each end of its swing
+                                    # (it needn't be a whole number: 1.5 is a little quicker)
+CUCKOO_SWING = 6                    # degrees the pendulum swings either side of straight down
+CUCKOO_WIND_HOUR = 8                # the weights are wound up at this hour, and go down until the same time the next day
+
+# --- Sound ----------------------------------------------------------
+
+CUCKOO_HALF_HOUR = True             # one call at half past, as well as one for each hour on the hour
+CUCKOO_CALL_GAP = 1.6               # seconds from one call to the next
+
+# --- Where and how big ----------------------------------------------
+
+CUCKOO_CENTRE_X = 960               # the middle of the clock, across
+CUCKOO_APEX_Y = 20                  # the top of the roof
+CUCKOO_ROOF_SLOPE = 0.75            # how steep the roof is (pixels down for each pixel out)
+CUCKOO_ROOF_THICKNESS = 64
+CUCKOO_ROOF_HALF = 500              # the eaves, either side of the middle
+CUCKOO_WALL_HALF = 380              # the front of the house, either side of the middle
+CUCKOO_BASE_Y = 790                 # the bottom of the house
+CUCKOO_DIAL_Y = 488                 # the middle of the dial...
+CUCKOO_DIAL_RADIUS = 245            # ...and the outside of its carved ring
+CUCKOO_DOOR_TOP = 118               # the top of the cuckoo's doorway...
+CUCKOO_DOOR_HALF = 46               # ...half its width...
+CUCKOO_DOOR_HEIGHT = 100            # ...and its height
+CUCKOO_WINDOW_X = 315               # the windows, either side of the middle...
+CUCKOO_WINDOW_Y = 470               # ...and the height of their middles
+CUCKOO_PENDULUM_LENGTH = 290        # from where it hangs (inside the house, 90 above its bottom) to the middle of its leaf
+CUCKOO_WEIGHT_X = 230               # the chains, either side of the middle
+CUCKOO_WEIGHT_HIGHEST = 810         # the top of a weight just after it has been wound...
+CUCKOO_WEIGHT_LOWEST = 870          # ...and a day later
+
+# --- Colours --------------------------------------------------------
+
+CUCKOO_PINE = (186, 134, 80)        # the knotty pine wall
+CUCKOO_WOOD = (92, 58, 34)          # the front of the house
+CUCKOO_TRIM = (176, 128, 74)        # the carved wood: the trim, the dial's ring, the doors and the pendulum's leaf
+CUCKOO_ROOF = (84, 46, 30)          # the shingles
+CUCKOO_DIAL = (52, 32, 20)
+CUCKOO_BONE = (236, 224, 196)       # the numerals and the hands...
+CUCKOO_BONE_LIGHT = (252, 246, 230) # ...and the hands' lit side
+CUCKOO_IRON = (70, 54, 40)          # the pine-cone weights
+CUCKOO_CHAIN = (172, 134, 70)
+CUCKOO_BIRD = (110, 88, 66)         # the cuckoo...
+CUCKOO_BIRD_DARK = (56, 42, 30)     # ...its wings and tail...
+CUCKOO_BIRD_BREAST = (226, 210, 176)    # ...its barred breast...
+CUCKOO_BEAK = (230, 172, 44)        # ...and its beak and legs
+CUCKOO_TEXT_COLOUR = (236, 214, 170)    # the notice in the corner at night
+
+
+##==================================================================
+## CLOCK: CITY FACE (clock_frame/city.py)
+#
+# The sky follows the real sun and moon for WEATHER_LAT and WEATHER_LON (in my_settings.py).
+##==================================================================
+
+# --- What it does ---------------------------------------------------
+
+CITY_SEED = None                    # None: a new city each time the program starts, and each night; a number (42,
+                                    # say): the same city every time
+CITY_HOURS_24 = True                # False: 1 to 12
+CITY_FACING = 180                   # the way you look across the street, in degrees from north (180: south, so the
+                                    # sun goes from left to right; it rises and sets off the edges in summer)
+CITY_VIEW_WIDTH = 100               # degrees of sky across the screen
+CITY_CLOUDINESS = (0.1, 0.8)        # how cloudy it is wanders between these (0: clear, 1: a dozen clouds), over hours and days
+CITY_TRAFFIC = 1.0                  # more or fewer cars and people (0: an empty street)
+CITY_PEOPLE = True                  # people walking along the pavement
+CITY_DRIVE_ON_LEFT = True           # the traffic keeps to the left, as in Britain (False: to the right)
+CITY_NEW_CITY_HOUR = 3              # a new city is made at this hour each night (it holds the screen up for a few
+                                    # seconds); None: keep the same one until the program restarts
+CITY_PREVIEW_SECONDS = 60           # the TIME button (or T, or a tap on the clock) shows the city an hour later each
+                                    # press; it goes back to now this long after the last press (or when held down, or R)
+
+# --- Sound ----------------------------------------------------------
+
+CITY_STRIKE_HOURS = True            # a distant church bell strikes the hours
+
+# --- Where and how big ----------------------------------------------
+
+CITY_STREET_Y = 880                 # the foot of the buildings (the pavement and the road are below it)
+CITY_CLOCK_RIGHT = 1870             # the right-hand edge of the time and the date...
+CITY_CLOCK_TOP = 30                 # ...and the top of the time
+CITY_CLOCK_SIZE = 190               # the time's font size...
+CITY_DATE_SIZE = 40                 # ...and the date's (no building is tall enough to be behind them)
+
+# --- Colours --------------------------------------------------------
+
+CITY_CLOCK_COLOUR = (250, 248, 242) # the time and the date (a little dimmer at night)
+CITY_TEXT_COLOUR = (236, 232, 222)  # the notice in the corner at night
+CITY_PREVIEW_COLOUR = (255, 196, 110)   # the time, while showing another time of day
 
 
 ##==================================================================

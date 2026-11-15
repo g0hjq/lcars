@@ -5,7 +5,7 @@
 #   lcars_frame/      the LCARS screen, and everything it uses
 #   deviantart_frame/ the DeviantArt picture frame, its daily downloads and its pictures
 #   biomonitor_frame/ the sickbay biomonitor dials
-#   clock_frame/      a clock with five faces (brass, railway, deco, Nixie, flip) that chimes
+#   clock_frame/      a clock with seven faces (brass, railway, deco, Nixie, flip, cuckoo, city) that chimes
 #   departures_frame/ a split-flap board of the aircraft overhead
 #   aquarium_frame/   a fish tank
 #   viewscreen_frame/ the view from the bridge, with warp jumps to new planets

@@ -1,7 +1,7 @@
 """
 clock.py
 
-A screen with a big clock on it, in one of five faces, changed with the OK button (or Enter):
+A screen with a big clock on it, in one of seven faces, changed with the OK button (or Enter):
 
   BRASS      an old brass clock with Roman numerals, a moon dial and a calendar, which
              chimes the Westminster Quarters and strikes the hour (brass.py)
@@ -11,6 +11,11 @@ A screen with a big clock on it, in one of five faces, changed with the OK butto
              the quarters and a gong for the hour (deco.py)
   NIXIE      six glowing Nixie tubes, with the time pips before each hour (nixie.py)
   FLIP       a 1970s flip clock, whose cards fall over with a clack (flip.py)
+  CUCKOO     a Black Forest cuckoo clock with a swinging pendulum, whose cuckoo comes out to
+             call the hours, and once at half past (cuckoo.py)
+  CITY       a made-up city across the street, under the real sky: the sun, the moon and the
+             stars where they are now, lights coming on in the windows as it gets dark, cars,
+             people, clouds and birds going by, and a distant bell for the hours (city.py)
 
 Each face has its own sounds, which are made when the program starts, so there are no sound
 files. Chimes are heard even behind the other screens (if CHIME_WHEN_HIDDEN); ticks only while
@@ -18,7 +23,8 @@ the clock is shown. The SOUND button sets only how loud the ticks are, going rou
 TICK_VOLUMES (LOWER, LOW, MEDIUM, HIGH and OFF): the chimes are always as loud as
 CHIME_VOLUME. Holding SOUND down (or C) turns the chimes off, or back on. Holding OK down (or
 Delete) plays the face's last chime again, like the repeat on an old clock. Between
-QUIET_FROM and QUIET_UNTIL it neither ticks nor chimes.
+QUIET_FROM and QUIET_UNTIL (to the minute) it neither ticks nor chimes. Other buttons and keys
+are passed on to the face shown (the city's TIME button, say).
 
 All the settings, for the screen and for each face, are in settings.py (next to lcars.py).
 
@@ -39,6 +45,8 @@ from .railway import RailwayFace
 from .deco import DecoFace
 from .nixie import NixieFace
 from .flip import FlipFace
+from .cuckoo import CuckooFace
+from .city import CityFace
 
 ##==================================================================
 ## SETTINGS (they are in settings.py, next to lcars.py)
@@ -60,8 +68,18 @@ from settings import (
     CLOCK_NOTICE_COLOUR as NOTICE_COLOUR,
 )
 
+# The quiet hours as minutes after midnight: settings.py has them as "HH:MM" (or a whole hour)
+def minutesOf(setting):
+    if isinstance(setting, str):
+        hours, minutes = setting.split(":")
+        return int(hours) * 60 + int(minutes)
+    return int(setting) * 60
+
+
+QUIET_FROM, QUIET_UNTIL = minutesOf(QUIET_FROM), minutesOf(QUIET_UNTIL)
+
 # The faces, by name
-FACE_CLASSES = {face.name: face for face in (BrassFace, RailwayFace, DecoFace, NixieFace, FlipFace)}
+FACE_CLASSES = {face.name: face for face in (BrassFace, RailwayFace, DecoFace, NixieFace, FlipFace, CuckooFace, CityFace)}
 
 
 class ClockScreen(scr.Screen):
@@ -205,6 +223,13 @@ class ClockScreen(scr.Screen):
             if self.chimesOn:
                 self.play(self.lastChime(datetime.datetime.now()))
 
+        # anything else is the face's to use, if it wants it (it returns the words of a notice)
+        elif self.face in self.built:
+            text = self.face.handleEvent(event)
+            if text:
+                print(f"Clock: {text}")
+                self.showNotice(f"{self.name}   {text}")
+
 
     # The face's chime for the last quarter that had one, going back up to an hour
     def lastChime(self, now):
@@ -229,19 +254,26 @@ class ClockScreen(scr.Screen):
     # Whether it is the time of night when the clock is silent
     @staticmethod
     def quietTime(now):
+        minute = now.hour * 60 + now.minute
         if QUIET_FROM <= QUIET_UNTIL:
-            return QUIET_FROM <= now.hour < QUIET_UNTIL
-        return now.hour >= QUIET_FROM or now.hour < QUIET_UNTIL
+            return QUIET_FROM <= minute < QUIET_UNTIL
+        return minute >= QUIET_FROM or minute < QUIET_UNTIL
 
 
     # The words in the corner: at night, that the clock is silent
     def statusFor(self, now):
         if (self.chimesOn or (self.soundOn and TICK)) and self.quietTime(now):
-            return f"Silent until {QUIET_UNTIL % 12 or 12}{'AM' if QUIET_UNTIL < 12 else 'PM'}"
+            hour, minute = divmod(QUIET_UNTIL, 60)
+            return f"Silent until {hour % 12 or 12}{f':{minute:02d}' if minute else ''}{'AM' if hour < 12 else 'PM'}"
         return None
 
 
     def update(self, visible):
+        # every face that has been drawn gets on with its own work, shown or not (the city
+        # makes itself afresh each night)
+        for face in self.built:
+            face.housekeeping(datetime.datetime.now())
+
         # a face not drawn yet is drawn once its name has been shown, as drawing it takes a moment
         if self.face not in self.built:
             if not (visible and self.noticeShown):
