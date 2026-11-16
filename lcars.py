@@ -43,7 +43,7 @@ def main():
     screen = pygame.display.set_mode((scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT))
 
     # The screens, in the order the right arrow key (or the next button) goes through them.
-    # The first is shown at the start. To add a screen, see screens.py.
+    # The one shown at the start is SCREEN_START in settings.py. To add a screen, see screens.py.
     # The departures board shows the aircraft the LCARS screen fetches.
     lcars = LcarsScreen()
     switcher = scr.ScreenSwitcher([

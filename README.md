@@ -3,7 +3,8 @@
 A Star Trek LCARS-style display for a Raspberry Pi, written in Python with pygame. It fills
 a 1920×1080 screen and shows one of seven screens at a time, changed with a push button on
 the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys. Each of the
-clock's faces counts as a screen of its own:
+clock's faces counts as a screen of its own. It starts on the city clock (`SCREEN_START` in
+`settings.py` picks another screen or face):
 
 - **LCARS**: an ambient screen that sits there looking busy. It shows a clock, the weather
   forecast, your next Google Calendar events, the Pi's CPU and memory use, and a radar of the
@@ -278,7 +279,7 @@ used, so nothing else is needed.
 
 | Button | Pin | Key | What it does |
 | --- | --- | --- | --- |
-| 1 (SOUND), pressed briefly | GPIO22 (pin 15) | Left arrow or M | the volume of the screen shown, in turn: LOW, MEDIUM, HIGH, MAX and OFF (18, 12 and 6 dB down, as set, and silent). A notice in the middle of the screen says which for a moment. Each screen has its own, starting at MAX when the program starts (its `..._VOLUMES` and `..._VOLUME_START` settings). On the clock it sets only the ticks; the chimes stay at full volume. |
+| 1 (SOUND), pressed briefly | GPIO22 (pin 15) | Left arrow or M | the volume of the screen shown, in turn: LOW, MEDIUM, HIGH, MAX and OFF (18, 12 and 6 dB down, as set, and silent). A notice in the middle of the screen says which for a moment. Each screen has its own levels (its `..._VOLUMES` setting), starting at MAX (`..._VOLUME_START`). On the clock it sets only the ticks; the chimes stay at full volume. Each screen's volume, and the chimes on or off, are remembered across restarts in `sound_state.json`. |
 | 1 (SOUND), held for 1.5 seconds | GPIO22 (pin 15) | C | clock: turn the chimes off, or back on |
 | 2 (NEXT), pressed briefly | GPIO17 (pin 11) | Right arrow | next screen, going round them all. Each clock face is a screen of its own: brass, railway, deco, Nixie, flip, cuckoo, city, then on to the aquarium |
 | 2 (NEXT), held for 1.5 seconds | GPIO17 (pin 11) | Enter or space | depends on the screen: see below |
@@ -335,6 +336,7 @@ the repository (see `.gitignore`):
 - `lcars_frame/credentials.json` and `lcars_frame/token.json`
 - `deviantart_frame/deviantart_choices.txt`
 - `deviantart_frame/pictures/`
+- `sound_state.json` (each screen's volume, and the clock's chimes on or off)
 
 ## Adding a screen
 
