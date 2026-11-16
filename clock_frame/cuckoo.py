@@ -169,8 +169,8 @@ def makeSounds(chimeVolume, tickVolume):
     call = makeCall(chimeVolume)
     whirr = makeWhirr(chimeVolume * 0.25)
     clack = makeSound(tickStroke(1.25, 0.004, 0.3, case=0.7), chimeVolume * 0.4)     # the doors
-    ticks = [makeSound(metalTick(1.0, 81), tickVolume * 0.8),
-             makeSound(metalTick(0.9, 82), tickVolume * 0.75)]
+    ticks = [makeSound(metalTick(1.0, 81), tickVolume),
+             makeSound(metalTick(0.9, 82), tickVolume * 0.94)]
     return call, whirr, clack, ticks
 
 
@@ -182,7 +182,7 @@ def callsAt(hour, minute):
 
 
 # Not a sound, but played with the calls, as though it were one, so that the bird comes out
-# with them: whenever they are played (on the hour, or again with the OK button held down),
+# with them: whenever they are played (on the hour, or again with the NEXT button held down),
 # and goes back in when they are stopped
 class Cue:
 

@@ -374,7 +374,7 @@ class CityFace(Face):
         self.makeClockFonts()
         stroke = bellStroke(277, 5.5, decayScale=1.3, hammer=0.03)
         stroke = synth.smooth(stroke, 4) * 0.8          # a long way off: softer, and the top taken off
-        self.bell = makeSound(stroke, chimeVolume * 0.8)
+        self.bell = makeSound(stroke, chimeVolume)
         self.vignette = vignetteSurface()
         self.offset = 0.0               # seconds ahead of the real time, while looking at another time of day...
         self.previewUntil = 0.0         # ...until this (time.monotonic)

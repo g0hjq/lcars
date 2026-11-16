@@ -48,7 +48,7 @@ shorter names (LCARS_RADAR_SIZE is RADAR_SIZE in lcars_screen.py).
 ## THE DISPLAY (screens.py, lcars.py)
 #
 # The size of the display, how often it is redrawn, and the volumes the SOUND button
-# goes round.
+# goes round on a screen that doesn't have its own.
 ##==================================================================
 
 # --- from screens.py ------------------------------------------
@@ -58,10 +58,22 @@ SCREEN_HEIGHT = 1080
 
 SCREEN_NOTICE_SECONDS = 2.5            # how long the volume is shown after it is changed
 
-# The volumes the SOUND button goes round, and how loud each is: high is the loudness each
-# screen sets for itself, and medium and low are 6 and 12 dB quieter
-SCREEN_VOLUMES = [("OFF", 0.0), ("LOW", 0.25), ("MEDIUM", 0.5), ("HIGH", 1.0)]
-SCREEN_VOLUME_ORDER = [1, 2, 3, 0]     # low, medium, high, off, and round again
+# The screen shown when the program starts: a screen's name ("LCARS", "AQUARIUM"...) or a clock
+# face's ("CITY", "BRASS"...)
+SCREEN_START = "CITY"
+
+# Each screen's volume, and the clock's chimes on or off, are kept in this file (next to
+# lcars.py) whenever they are changed, and set from it when the program starts. Delete it to go
+# back to the ..._VOLUME_START settings and CLOCK_CHIME.
+SCREEN_STATE_FILE = "sound_state.json"
+
+# The volumes the SOUND button goes round, and how loud each is: MAX is the loudness the
+# screen's sounds were made at, and HIGH, MEDIUM and LOW are 6, 12 and 18 dB quieter. Each
+# press goes one louder, and from MAX to OFF. Every screen with sound has its own levels (the
+# ..._VOLUMES settings in its section), and the one it starts at (..._VOLUME_START); these are
+# for a screen that doesn't.
+SCREEN_VOLUMES = [("OFF", 0.0), ("LOW", 0.125), ("MEDIUM", 0.25), ("HIGH", 0.5), ("MAX", 1.0)]
+SCREEN_VOLUME_START = "MAX"
 
 # How many samples the sound card is given at a time. Bigger stops the odd click when the Pi
 # is busy for a moment ("underrun occurred" in the journal), but every sound starts that much
@@ -78,12 +90,14 @@ SCREEN_FRAME_RATE = 30
 # The GPIO pins (BCM numbers) the push buttons are wired to, and how they are read.
 ##==================================================================
 
-BUTTONS_SOUND_PIN = 22                  # (it was the PREVIOUS button)
-BUTTONS_NEXT_PIN = 17
-BUTTONS_OK_PIN = 27
-BUTTONS_TIME_PIN = 23                   # optional fourth button (physical pin 16 to GND): on the city clock, an hour
-                                        # later each press, held down back to now. None if there isn't one.
-BUTTONS_HOLD_SECONDS = 2            # how long the OK or SOUND button must be held down
+BUTTONS_SOUND_PIN = 22                  # button 1: the volume (the clock's ticks); held, the clock's chimes on or off
+BUTTONS_NEXT_PIN = 17                   # button 2: the next screen (or clock face); held, the screen's own thing
+                                        # (the next picture, the clock's chime, feed the fish, warp...)
+BUTTONS_OK_PIN = None                   # optional third button (GPIO27, physical pin 13 to GND), as button 2 held;
+                                        # held down, it deletes the picture shown in the DeviantArt frame
+BUTTONS_TIME_PIN = None                 # optional fourth button (GPIO23, physical pin 16 to GND): on the city clock,
+                                        # an hour later each press, held down back to now
+BUTTONS_HOLD_SECONDS = 1.5          # how long a button must be held down
 BUTTONS_BOUNCE_SECONDS = 0.10       # a press within this long of the last is taken as contact bounce
 
 
@@ -213,6 +227,10 @@ LCARS_SERVICE_COLOUR = (80, 230, 120)   # ...and the aircraft itself, on the rad
 ##==================================================================
 
 LCARS_SOUND_VOLUME = 0.9                # 0 to 1
+
+# The levels the SOUND button goes round on this screen: (name, how loud, compared with MAX)
+LCARS_SOUND_VOLUMES = [("OFF", 0.0), ("LOW", 0.125), ("MEDIUM", 0.25), ("HIGH", 0.5), ("MAX", 1.0)]
+LCARS_SOUND_VOLUME_START = "MAX"        # the one it starts at
 
 
 ##==================================================================
@@ -465,6 +483,10 @@ DOWNLOAD_MAX_TOPIC_PAGES = 30            # most pages of topics "topics" will as
 # The sickbay biomonitor's dials and lamps.
 ##==================================================================
 
+# The heartbeat's levels for the SOUND button: (name, how loud, compared with MAX)
+BIOMONITOR_VOLUMES = [("OFF", 0.0), ("LOW", 0.125), ("MEDIUM", 0.25), ("HIGH", 0.5), ("MAX", 1.0)]
+BIOMONITOR_VOLUME_START = "MAX"         # the one it starts at
+
 BIOMONITOR_FONT_SIZE_1 = 22
 BIOMONITOR_FONT_SIZE_2 = 28
 
@@ -490,27 +512,29 @@ BIOMONITOR_GAMMA = 3.5
 ##==================================================================
 ## CLOCK SCREEN (clock_frame/clock.py)
 #
-# Which faces the OK button goes round, the chimes and ticks, and the quiet hours.
+# Which faces the NEXT button goes through, the chimes and ticks, and the quiet hours.
 ##==================================================================
 
 # --- The faces ------------------------------------------------------
 
-# The faces, in the order the OK button goes round them. The first is shown when the program
-# starts. Leave out any you don't want.
+# The faces, in the order the NEXT button goes through them, each like a screen of its own.
+# The first is the one shown when the clock comes round. Leave out any you don't want.
 CLOCK_FACES = ["BRASS", "RAILWAY", "DECO", "NIXIE", "FLIP", "CUCKOO", "CITY"]
 
 # --- Sound ----------------------------------------------------------
 
-CLOCK_CHIME = True                  # False: start with no chimes, strikes or pips, on any face (holding SOUND turns them on)...
+CLOCK_CHIME = True                  # False: start with no chimes, strikes or pips, on any face (holding SOUND turns them on;
+                                    # once changed, SCREEN_STATE_FILE remembers it)...
 CLOCK_TICK = True                   # ...or no ticks (or clunks, or clacks)
-CLOCK_CHIME_WHEN_HIDDEN = True      # True: chime even while another screen is shown (ticks are only heard on this one)
-CLOCK_CHIME_VOLUME = 0.6            # 0 to 1: the chimes are always this loud (the SOUND button doesn't change them)
-CLOCK_TICK_LOUDNESS = 0.25          # the ticks at HIGH are this much of the chimes' loudness (12 dB quieter)
+CLOCK_CHIME_WHEN_HIDDEN = True      # True: chime even while another screen is shown (ticks are only heard on this one)...
+CLOCK_HIDDEN_FACE = "DECO"          # ...with this face's chimes (it need not be in CLOCK_FACES)
+CLOCK_CHIME_VOLUME = 1.0            # 0 to 1: the chimes are always this loud (the SOUND button doesn't change them)
+CLOCK_TICK_LOUDNESS = 0.25          # the loudest ticks at MAX are this much of the chimes' loudness (12 dB quieter)
 
 # On the clock, the SOUND button sets only how loud the ticks are, going round these levels:
-# (name, how loud, compared with HIGH). Holding it down turns the chimes off, or back on.
-CLOCK_TICK_VOLUMES = [("OFF", 0.0), ("LOWER", 0.125), ("LOW", 0.25), ("MEDIUM", 0.5), ("HIGH", 1.0)]
-CLOCK_TICK_VOLUME_ORDER = [1, 2, 3, 4, 0]   # lower, low, medium, high, off, and round again (it starts at high)
+# (name, how loud, compared with MAX). Holding it down turns the chimes off, or back on.
+CLOCK_TICK_VOLUMES = [("OFF", 0.0), ("LOW", 0.125), ("MEDIUM", 0.25), ("HIGH", 0.5), ("MAX", 1.0)]
+CLOCK_TICK_VOLUME_START = "MAX"     # the one it starts at
 
 # --- Quiet hours (the aquarium dims its light then too) ------------
 
@@ -521,7 +545,7 @@ CLOCK_QUIET_UNTIL = "08:59"         # ...until this one, so the midnight chime a
 # --- Notices --------------------------------------------------------
 
 CLOCK_STATUS_CORNER = (1890, 1050)  # the bottom right corner of the notice that the clock is silent at night
-CLOCK_NOTICE_SECONDS = 2.0          # how long the name of the face is shown when OK changes it
+CLOCK_NOTICE_SECONDS = 2.0          # how long the name of the face is shown when NEXT changes to it
 CLOCK_NOTICE_COLOUR = (204, 153, 204)
 
 
@@ -661,7 +685,7 @@ NIXIE_FADE_SECONDS = 0.22           # one digit fading into the next
 # --- Sound ----------------------------------------------------------
 
 NIXIE_PIPS = True                   # the time pips before each hour: five short and a long one on the hour
-NIXIE_PIP_LOUDNESS = 0.35           # the pips are this much of the chimes' volume
+NIXIE_PIP_LOUDNESS = 0.5            # the pips are this much of the chimes' volume (6 dB quieter)
 
 # --- Where and how big ----------------------------------------------
 
@@ -817,7 +841,11 @@ CITY_PREVIEW_COLOUR = (255, 196, 110)   # the time, while showing another time o
 ##==================================================================
 
 AQUARIUM_SOUND = True
-AQUARIUM_SOUND_VOLUME = 0.075            # 0 to 1
+AQUARIUM_SOUND_VOLUME = 0.075            # 0 to 1: MAX
+
+# The bubbles' levels for the SOUND button: (name, how loud, compared with MAX)
+AQUARIUM_VOLUMES = [("OFF", 0.0), ("LOW", 0.125), ("MEDIUM", 0.25), ("HIGH", 0.5), ("MAX", 1.0)]
+AQUARIUM_VOLUME_START = "MAX"            # the one it starts at
 
 AQUARIUM_SAND_TOP = 880                  # the top of the sand
 AQUARIUM_SURFACE = 40                    # the bottom of the water's surface
@@ -880,7 +908,9 @@ AQUARIUM_HOURS_24 = True                 # False: 1 to 12
 ##==================================================================
 
 VIEWSCREEN_SOUND = True
-VIEWSCREEN_SOUND_VOLUME = 0.5              # 0 to 1
+VIEWSCREEN_SOUND_VOLUME = 0.5              # 0 to 1: MAX
+VIEWSCREEN_VOLUMES = [("OFF", 0.0), ("LOW", 0.125), ("MEDIUM", 0.25), ("HIGH", 0.5), ("MAX", 1.0)]    # the levels for the SOUND button: (name, how loud, compared with MAX)
+VIEWSCREEN_VOLUME_START = "MAX"            # the one it starts at
 VIEWSCREEN_AUTO_WARP_MINUTES = (3, 7)      # at impulse, it goes to warp by itself after between these many minutes (None: only with OK)
 VIEWSCREEN_WARP_SECONDS = (12, 30)         # and stays at warp for between these many seconds
 

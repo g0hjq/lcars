@@ -2,7 +2,8 @@
 
 A Star Trek LCARS-style display for a Raspberry Pi, written in Python with pygame. It fills
 a 1920×1080 screen and shows one of seven screens at a time, changed with a push button on
-the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
+the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys. Each of the
+clock's faces counts as a screen of its own:
 
 - **LCARS**: an ambient screen that sits there looking busy. It shows a clock, the weather
   forecast, your next Google Calendar events, the Pi's CPU and memory use, and a radar of the
@@ -14,7 +15,7 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
 - **Biomonitor**: the sickbay biomonitor, with a row of dials whose pointers drift around
   their normal ranges, and lamps that flash with the breathing and the heartbeat (which you
   can hear).
-- **Clock**: a big clock, with seven faces that the OK button goes round:
+- **Clock**: a big clock, with seven faces that the NEXT button goes through, one after another:
   - **Brass**: an old brass clock with Roman numerals, blued steel hands, a moon-phase window
     and windows for the day, the date and the month. It ticks, chimes the Westminster Quarters
     and strikes the hour.
@@ -49,15 +50,18 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
       the traffic builds up over its first half minute.
     - People walk along the pavement, clouds drift by, birds and aeroplanes cross the sky
       now and then, and steam rises from the roofs. A distant bell strikes the hours.
-    - To see it at another time of day, hold OK down (or press the TIME button, or T, or tap
-      the clock): each time goes an hour later, with the time in amber. Holding TIME (or R)
-      goes back to now, as it does by itself after a minute.
+    - To see it at another time of day, press T or tap the clock (or the optional TIME
+      button, or hold the optional OK button down): each time goes an hour later, with the
+      time in amber. R (or holding TIME down) goes back to now, as it does by itself after a
+      minute.
 
-  Chimes are heard even behind the other screens; ticks only while the clock is shown. On the
-  clock the SOUND button sets only how loud the ticks are (LOWER, LOW, MEDIUM, HIGH or OFF):
-  the chimes always play at full volume, and holding SOUND down turns them off, or back on.
-  Both are for the whole clock, whichever face is shown. Holding OK down plays the last chime
-  again (except on the city face, where it goes an hour later). It is silent from a minute
+  Chimes are heard even behind the other screens: the deco clock's (`CLOCK_HIDDEN_FACE`). When
+  the clock comes round again it starts at its first face. Ticks are heard only while the clock
+  is shown. On the clock the SOUND button sets only how loud the ticks are (LOW, MEDIUM, HIGH,
+  MAX or OFF): the chimes always play at full volume, and holding SOUND down turns them off, or back
+  on. Both are for the whole clock, whichever face is shown. Holding NEXT down plays the
+  face's last chime again, even at night or with the chimes off (the flip clock, which has no
+  chime, clacks over to the hour instead). It is silent from a minute
   past midnight to a minute before 9am, so the midnight chime and the 9 o'clock one are
   heard. Each face is drawn the first time it is shown, which takes a few seconds: meanwhile
   the screen is blank, with the face's name (DECO CLOCK, say). Its settings (which faces, the sound, the quiet hours, and each
@@ -70,27 +74,31 @@ the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys:
 - **Aquarium**: a tropical fish tank, with fish of several kinds, a school of neon tetras,
   swaying plants, driftwood, a stream of bubbles, specks drifting in the water, sunlight
   rippling on the sand and shimmering on the underside of the surface, and more plants fading
-  into the haze at the back. The time is at the top left (`AQUARIUM_CLOCK_SIZE`). The OK
-  button feeds the fish. At night (the clock's quiet hours) the light goes down and the fish
+  into the haze at the back. The time is at the top left (`AQUARIUM_CLOCK_SIZE`). Holding
+  the NEXT button down feeds the fish. At night (the clock's quiet hours) the light goes down and the fish
   rest.
 - **Viewscreen**: the bridge's main viewscreen, set in its metal frame in the bulkhead, with
   running lights chasing round it and a console below. At impulse there is a planet or nebula
-  ahead; the OK button (or a few minutes' wait) powers up and goes to warp, the lights turning
+  ahead; holding the NEXT button down (or a few minutes' wait) powers up and goes to warp, the lights turning
   blue, and it drops out later somewhere new: each planet and nebula is made up by the
   program, with a made-up name. The bridge hums, and the consoles chirp now and then. The
   time is on the console (`VIEWSCREEN_CLOCK`).
 
 The sounds are all made by the program as it starts (see `synth.py`), so there are no sound
 files apart from the biomonitor's heartbeat. How loud each one is, from 0 to 1, is set in
-`settings.py` (and by the Pi's own volume). That is the loudest, HIGH: the SOUND
-button turns each screen down from there (see [Buttons](#buttons)), except on the clock, where
+`settings.py` (and by the Pi's own volume). That is the loudest, MAX: the SOUND
+button turns each screen down from there, through HIGH, MEDIUM and LOW (6, 12 and 18 dB down)
+to OFF, with each screen's levels and the one it starts at in its own section of `settings.py`
+(`AQUARIUM_VOLUMES` and `AQUARIUM_VOLUME_START`, say). Each screen's volume, and the clock's
+chimes on or off, are remembered in `sound_state.json` when they are changed, so they are the
+same after a restart (delete the file to go back to the settings) (see [Buttons](#buttons)), except on the clock, where
 it turns down only the ticks (and holding it down turns the chimes off or on).
 
 | Sound | Setting |
 | --- | --- |
 | LCARS alerts | `LCARS_SOUND_VOLUME` (0.9) |
-| Clock chimes | `CLOCK_CHIME_VOLUME` (0.6), whatever the SOUND button is set to; the Nixie pips are `NIXIE_PIP_LOUDNESS` (0.35) of that |
-| Clock ticks (and the flip clock's clacks) | `CLOCK_TICK_LOUDNESS` (0.25) of the chimes' loudness at HIGH, 12 dB quieter; the SOUND button turns them down from there (`CLOCK_TICK_VOLUMES`) |
+| Clock chimes | `CLOCK_CHIME_VOLUME` (1.0, the most), whatever the SOUND button is set to; the Nixie pips are `NIXIE_PIP_LOUDNESS` (0.5, 6 dB quieter) of that |
+| Clock ticks (and the flip clock's clacks) | `CLOCK_TICK_LOUDNESS` (0.25) of the chimes' loudness at MAX, 12 dB quieter; the SOUND button turns them down from there (`CLOCK_TICK_VOLUMES`) |
 | Aquarium bubbles | `AQUARIUM_SOUND_VOLUME` (0.075) |
 | Viewscreen hum, chirps and warp | `VIEWSCREEN_SOUND_VOLUME` (0.5) |
 
@@ -148,8 +156,8 @@ filled in for flights to or from your own airport.*
 
 - A Raspberry Pi (it was written on a Pi 5) running Raspberry Pi OS, with a 1920×1080 screen
   on HDMI. It runs without a desktop, drawing straight to the screen.
-- Optional: three push buttons on the GPIO pins, and a fourth for the city clock's TIME
-  button (see [Buttons](#buttons)). A keyboard does the same.
+- Optional: two push buttons on the GPIO pins, and two more if you like (see
+  [Buttons](#buttons)). A keyboard does the same.
 - Optional: an ADS-B receiver running dump1090 (for example a Flightradar24 feeder) for the
   aircraft radar.
 - Optional: a DeviantArt API key for the picture frame, and a Google account for the calendar.
@@ -270,25 +278,29 @@ used, so nothing else is needed.
 
 | Button | Pin | Key | What it does |
 | --- | --- | --- | --- |
-| SOUND, pressed briefly | GPIO22 (pin 15) | Left arrow or M | the volume of the screen shown, in turn: LOW, MEDIUM, HIGH and OFF (12 dB down, 6 dB down, as set, and silent). A notice in the middle of the screen says which for a moment. Each screen remembers its own, starting at HIGH when the program starts. On the clock it sets only the ticks, with one more level: LOWER (18 dB down), LOW, MEDIUM, HIGH and OFF; the chimes stay at full volume. |
-| SOUND, held for 2 seconds | GPIO22 (pin 15) | C | clock: turn the chimes off, or back on |
-| NEXT | GPIO17 (pin 11) | Right arrow | next screen, going round them all |
-| OK, pressed briefly | GPIO27 (pin 13) | Enter or space | depends on the screen: see below |
-| OK, held for 2 seconds | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: play the face's last chime again, or on the city face, show the city an hour later |
+| 1 (SOUND), pressed briefly | GPIO22 (pin 15) | Left arrow or M | the volume of the screen shown, in turn: LOW, MEDIUM, HIGH, MAX and OFF (18, 12 and 6 dB down, as set, and silent). A notice in the middle of the screen says which for a moment. Each screen has its own, starting at MAX when the program starts (its `..._VOLUMES` and `..._VOLUME_START` settings). On the clock it sets only the ticks; the chimes stay at full volume. |
+| 1 (SOUND), held for 1.5 seconds | GPIO22 (pin 15) | C | clock: turn the chimes off, or back on |
+| 2 (NEXT), pressed briefly | GPIO17 (pin 11) | Right arrow | next screen, going round them all. Each clock face is a screen of its own: brass, railway, deco, Nixie, flip, cuckoo, city, then on to the aquarium |
+| 2 (NEXT), held for 1.5 seconds | GPIO17 (pin 11) | Enter or space | depends on the screen: see below |
+| OK, pressed briefly (optional) | GPIO27 (pin 13) | Enter or space | the same as holding NEXT down |
+| OK, held for 1.5 seconds (optional) | GPIO27 (pin 13) | Delete | DeviantArt frame: delete the picture shown, so it isn't seen again; clock: play the face's last chime again, or on the city face, show the city an hour later |
 | TIME, pressed briefly (optional) | GPIO23 (pin 16) | T (or tap the clock) | city clock: show the city an hour later than the one shown, for a minute |
-| TIME, held for 2 seconds | GPIO23 (pin 16) | R | city clock: back to now |
+| TIME, held for 1.5 seconds (optional) | GPIO23 (pin 16) | R | city clock: back to now |
 | | | Esc or Q | quit (the service starts it again) |
 
-Ground is pin 9, 14 or 20. The TIME button is optional: `BUTTONS_TIME_PIN` in `settings.py`
-sets its pin, or None if there isn't one.
+Ground is pin 9, 14 or 20. Buttons 1 and 2 are all it needs. The OK and TIME buttons are
+optional: `BUTTONS_OK_PIN` and `BUTTONS_TIME_PIN` in `settings.py` set their pins (27 and 23),
+or None (as they are) if there aren't any. A brief press acts when the button is let go, and
+a long one as soon as it has been held for `BUTTONS_HOLD_SECONDS`.
 
-What a brief press of OK does on each screen:
+What holding NEXT down does on each screen:
 
 - LCARS: new colours
 - DeviantArt frame: the next picture
-- Clock: the next face (brass, railway, deco, Nixie, flip, cuckoo, city)
+- Clock: plays the face's last chime again (the cuckoo comes out; the flip clock clacks over)
 - Aquarium: feeds the fish
 - Viewscreen: goes to warp, or drops out of it
+- Biomonitor and departures board: nothing
 
 ## Files
 
@@ -344,16 +356,19 @@ the repository (see `.gitignore`):
 4. Put its settings in a section of their own in `settings.py`, each name starting with the
    screen's (`MINE_...`), and import them with `from settings import MINE_SPEED as SPEED`.
 
-It can also react to the buttons with `handleEvent(self, event)`, which gets the `OK_PRESSED`,
-`OK_HELD`, `SOUND_HELD`, `TIME_PRESSED` and `TIME_HELD` events from `screens.py`, and any key
-the main loop doesn't use itself.
+It can also react to the buttons with `handleEvent(self, event)`, which gets the `OK_PRESSED`
+(NEXT held down), `OK_HELD`, `SOUND_HELD`, `TIME_PRESSED` and `TIME_HELD` events from
+`screens.py`, and any key the main loop doesn't use itself. A screen with pages of its own, as
+the clock has faces, can return True from `nextPage()` to show its next one instead of letting
+NEXT move on to the next screen.
 
 If it makes any sound, set `hasSound = True` in the class, return its pygame Sounds from
 `soundList()` (as `(sound, 1.0)` pairs) so that the SOUND button can set their volume, and
 check `self.soundOn` before playing anything. When the sound is turned off or back on, its
 `setSound(on)` is called, where a sound that keeps playing (a loop, say) can be stopped. A
-screen can have levels of its own for the SOUND button to go round (`volumes` and
-`volumeOrder`), and its own words for the notice (`volumeNotice(level)`), as the clock does.
+screen can have levels of its own for the SOUND button to go round (`volumes`, OFF first, and
+`volumeStart`, the name of the one it starts at), and its own words for the notice
+(`volumeNotice(level)`), as the clock does.
 
 ## Made with Claude Code
 

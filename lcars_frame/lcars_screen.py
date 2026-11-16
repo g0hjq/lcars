@@ -85,6 +85,8 @@ from settings import (
     LCARS_ICON_SIZE_SMALL as ICON_SIZE_SMALL,
     LCARS_ICON_SIZE_LARGE as ICON_SIZE_LARGE,
     LCARS_SIDEBAR_LABELS as SIDEBAR_LABELS,
+    LCARS_SOUND_VOLUMES as VOLUMES,
+    LCARS_SOUND_VOLUME_START as VOLUME_START,
 )
 
 # The text size and the colours are named in settings.py: these are the ones they name
@@ -1459,6 +1461,8 @@ class LcarsScreen(scr.Screen):
 
     name = "LCARS"
     hasSound = True
+    volumes = VOLUMES               # the levels the SOUND button goes round (settings.py)
+    volumeStart = VOLUME_START
 
     def soundList(self):
         return [(s, 1.0) for s in sound.sounds.values()]
@@ -1519,7 +1523,7 @@ class LcarsScreen(scr.Screen):
         self.lastCPUUpdate = -1
 
 
-    # The OK button (or Enter) changes the colour scheme
+    # Holding the NEXT button down (or Enter) changes the colour scheme
     def handleEvent(self, event):
         if event.type == scr.OK_PRESSED or (event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE)):
             self.newColours()
@@ -1532,7 +1536,7 @@ class LcarsScreen(scr.Screen):
         currentLocalTime = time.localtime(currentUnixTime)
 
 
-        # On the hour the colour scheme changes (and when the OK button is pressed, see handleEvent)
+        # On the hour the colour scheme changes (and when the NEXT button is held down, see handleEvent)
         hourKey = (currentLocalTime.tm_yday, currentLocalTime.tm_hour)
         if hourKey != self.lastHourKey:
             if self.lastHourKey is not None:

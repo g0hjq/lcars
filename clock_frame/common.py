@@ -9,7 +9,7 @@ class based on Face (or AnalogueFace) in a file of its own, add it to FACE_CLASS
 clock.py, and add its name to CLOCK_FACES in settings.py.
 
     class MyFace(Face):
-        name = "MINE"                       # shown when the OK button changes to it
+        name = "MINE"                       # shown when the NEXT button changes to it
 
         def build(self, chimeVolume, tickVolume):
             ...                             # once, the first time it is shown: drawing and sounds

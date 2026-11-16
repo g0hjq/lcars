@@ -77,8 +77,8 @@ def makeChimes(chimeVolume, tickVolume):
         chimes[quarter] = makeSound(mixNotes(notes), chimeVolume)
 
     gong = makeSound(bellStroke(GONG, 7.0, decayScale=1.3, partials=GONG_PARTIALS, hammer=0.02), chimeVolume)
-    ticks = [makeSound(brightTick(1.0, 61), tickVolume * 0.8),
-             makeSound(brightTick(0.93, 62), tickVolume * 0.7)]
+    ticks = [makeSound(brightTick(1.0, 61), tickVolume),
+             makeSound(brightTick(0.93, 62), tickVolume * 0.875)]
     return chimes, gong, ticks
 
 

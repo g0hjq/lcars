@@ -7,7 +7,7 @@ drifting in the water, sunlight rippling on the sand and shimmering on the under
 surface, a piece of driftwood, and more plants fading into the haze at the back. The time is
 at the top left.
 
-The OK button (or Enter) sprinkles food on the water. It sinks slowly, and the fish dart
+Holding the NEXT button down (or Enter) sprinkles food on the water. It sinks slowly, and the fish dart
 up to eat it.
 
 At night (the clock's quiet hours, see CLOCK_QUIET_FROM in settings.py) the tank light
@@ -52,6 +52,8 @@ from settings import (
     AQUARIUM_CLOCK_TOP as CLOCK_TOP,
     AQUARIUM_CLOCK_COLOUR as CLOCK_COLOUR,
     AQUARIUM_HOURS_24 as HOURS_24,
+    AQUARIUM_VOLUMES as VOLUMES,
+    AQUARIUM_VOLUME_START as VOLUME_START,
 )
 
 W, H = scr.SCREEN_WIDTH, scr.SCREEN_HEIGHT
@@ -848,6 +850,8 @@ class AquariumScreen(scr.Screen):
 
     name = "AQUARIUM"
     hasSound = True
+    volumes = VOLUMES               # the levels the SOUND button goes round (settings.py)
+    volumeStart = VOLUME_START
 
     def soundList(self):
         return [(self.bubbling, 1.0), (self.plip, 1.0)]

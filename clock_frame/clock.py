@@ -1,7 +1,9 @@
 """
 clock.py
 
-A screen with a big clock on it, in one of seven faces, changed with the OK button (or Enter):
+A screen with a big clock on it, in one of seven faces. Each face is a screen of its own as far
+as the NEXT button (or the right arrow key) goes: it goes through them in turn, and on from the
+last to the next screen.
 
   BRASS      an old brass clock with Roman numerals, a moon dial and a calendar, which
              chimes the Westminster Quarters and strikes the hour (brass.py)
@@ -18,12 +20,15 @@ A screen with a big clock on it, in one of seven faces, changed with the OK butt
              people, clouds and birds going by, and a distant bell for the hours (city.py)
 
 Each face has its own sounds, which are made when the program starts, so there are no sound
-files. Chimes are heard even behind the other screens (if CHIME_WHEN_HIDDEN); ticks only while
-the clock is shown. The SOUND button sets only how loud the ticks are, going round
-TICK_VOLUMES (LOWER, LOW, MEDIUM, HIGH and OFF): the chimes are always as loud as
-CHIME_VOLUME. Holding SOUND down (or C) turns the chimes off, or back on. Holding OK down (or
-Delete) plays the face's last chime again, like the repeat on an old clock (on the city face it
-shows the city an hour later instead). Between
+files. Chimes are heard even behind the other screens (if CHIME_WHEN_HIDDEN): HIDDEN_FACE's
+(the deco clock's). When the clock comes round again it starts at its first face. Ticks are
+heard only while the clock is shown. The SOUND button sets only how loud the ticks are, going
+round TICK_VOLUMES (LOW, MEDIUM, HIGH, MAX and OFF): the chimes are always as loud as
+CHIME_VOLUME. Holding SOUND down
+(or C) turns the chimes off, or back on. Holding NEXT down (or Enter) plays the face's last
+chime again, like the repeat on an old clock (the flip clock, which has none, clacks over to
+the hour). Holding the optional OK button down (or Delete) does too, except on the city face,
+where it shows the city an hour later. Between
 QUIET_FROM and QUIET_UNTIL (to the minute) it neither ticks nor chimes. Other buttons and keys
 are passed on to the face shown (the city's TIME button, say).
 
@@ -59,10 +64,11 @@ from settings import (
     CLOCK_CHIME as CHIME,
     CLOCK_TICK as TICK,
     CLOCK_CHIME_WHEN_HIDDEN as CHIME_WHEN_HIDDEN,
+    CLOCK_HIDDEN_FACE as HIDDEN_FACE,
     CLOCK_CHIME_VOLUME as CHIME_VOLUME,
     CLOCK_TICK_LOUDNESS as TICK_LOUDNESS,
     CLOCK_TICK_VOLUMES as TICK_VOLUMES,
-    CLOCK_TICK_VOLUME_ORDER as TICK_VOLUME_ORDER,
+    CLOCK_TICK_VOLUME_START as TICK_VOLUME_START,
     CLOCK_QUIET_FROM as QUIET_FROM,
     CLOCK_QUIET_UNTIL as QUIET_UNTIL,
     CLOCK_STATUS_CORNER as STATUS_CORNER,
@@ -89,14 +95,19 @@ class ClockScreen(scr.Screen):
     name = "CLOCK"
     hasSound = True
     volumes = TICK_VOLUMES              # the SOUND button sets the ticks' volume, at these levels...
-    volumeOrder = TICK_VOLUME_ORDER
-    volumeLevel = len(TICK_VOLUMES) - 1     # ...starting at the loudest
+    volumeStart = TICK_VOLUME_START     # ...starting at this one
 
     def start(self):
-        self.faces = [FACE_CLASSES[name.upper()]() for name in FACES]
+        names = [name.upper() for name in FACES]
+        self.faces = [FACE_CLASSES[name]() for name in names]
         self.built = set()              # the faces drawn so far
         self.index = 0
         self.build(self.face)
+
+        # the face whose chimes are heard while the clock isn't shown, drawn now so it is ready
+        hidden = HIDDEN_FACE.upper()
+        self.hiddenFace = self.faces[names.index(hidden)] if hidden in names else FACE_CLASSES[hidden]()
+        self.build(self.hiddenFace)
 
         self.visible = False
         self.chimesOn = CHIME           # holding the SOUND button turns them off, or back on
@@ -164,11 +175,45 @@ class ClockScreen(scr.Screen):
         self.face.enter()
 
 
-    # The ticking stops; the bells too, unless they are meant to be heard behind the other screens
+    # The ticking stops, and the bells too, unless they are the hidden face's, which go on behind
+    # the other screens. The clock goes back to its first face, for when it comes round again.
     def leave(self):
         self.visible = False
-        if not CHIME_WHEN_HIDDEN:
+        self.notice = None
+        if not CHIME_WHEN_HIDDEN or self.face is not self.hiddenFace:
             self.silence()
+        self.index = 0
+        self.status = None
+
+
+    # It remembers its chimes on or off too
+    def saveState(self):
+        return {**super().saveState(), "chimes": self.chimesOn}
+
+    def loadState(self, state):
+        super().loadState(state)
+        if isinstance(state.get("chimes"), bool):
+            self.chimesOn = state["chimes"]
+
+    # The program can start at one of its faces (SCREEN_START)
+    def showPage(self, name):
+        names = [face.name for face in self.faces]
+        if name not in names:
+            return False
+        self.index = names.index(name)
+        return True
+
+    # The NEXT button goes through the faces, then on to the next screen after the last
+    def nextPage(self):
+        if self.index + 1 >= len(self.faces):
+            return False
+        self.silence()
+        self.index += 1
+        print(f"Clock: {self.face.name}")
+        self.face.enter()
+        self.status = None
+        self.showNotice(f"{self.face.name}   {self.name}")
+        return True
 
 
     def silence(self):
@@ -197,15 +242,11 @@ class ClockScreen(scr.Screen):
         self.noticeShown = False
 
 
-    # OK (pressed briefly) changes the face; held down, it plays the face's last chime again
+    # NEXT held down (OK_PRESSED) plays the face's last chime again, even at night or with the
+    # chimes turned off, as it was asked for
     def handleEvent(self, event):
         if event.type == scr.OK_PRESSED or (event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE)):
-            self.silence()
-            self.index = (self.index + 1) % len(self.faces)
-            print(f"Clock: {self.face.name}")
-            self.face.enter()
-            self.status = None
-            self.showNotice(f"{self.face.name}   {self.name}")
+            self.playDemo()
 
         # SOUND held down (or C) turns the chimes off, or back on
         elif event.type == scr.SOUND_HELD or (event.type == pygame.KEYDOWN and event.key == pygame.K_c):
@@ -217,13 +258,11 @@ class ClockScreen(scr.Screen):
             self.showNotice(f"{self.name}   CHIMES {'ON' if self.chimesOn else 'OFF'}",
                             (255, 153, 0) if self.chimesOn else (230, 61, 61))
 
-        # OK held down: the face can use it (the city goes an hour later); if it doesn't, the
-        # last chime plays again
+        # the optional OK button held down: the face can use it (the city goes an hour later);
+        # if it doesn't, the last chime plays again
         elif event.type == scr.OK_HELD or (event.type == pygame.KEYDOWN and event.key == pygame.K_DELETE):
             if not self.faceEvent(event):
-                self.silence()
-                if self.chimesOn:
-                    self.play(self.lastChime(datetime.datetime.now()))
+                self.playDemo()
 
         # anything else is the face's to use, if it wants it
         else:
@@ -239,6 +278,21 @@ class ClockScreen(scr.Screen):
             print(f"Clock: {text}")
             self.showNotice(f"{self.name}   {text}")
         return bool(text)
+
+
+    # The face's last chime again, or for a face with none (the flip clock) the sounds of the
+    # hour coming round
+    def playDemo(self):
+        if self.face not in self.built:
+            return
+        self.silence()
+        now = datetime.datetime.now()
+        sounds = self.lastChime(now)
+        if not sounds:
+            top = now.replace(minute=0, second=0, microsecond=0)
+            sounds = [(later, sound) for later, sound, kind in self.face.soundsAt(top)]
+        print(f"Clock: {self.face.name} chime")
+        self.play(sounds)
 
 
     # The face's chime for the last quarter that had one, going back up to an hour
@@ -294,11 +348,12 @@ class ClockScreen(scr.Screen):
 
         now = datetime.datetime.now()
 
-        # as each second begins, the face's sounds for it
+        # as each second begins, the face's sounds for it (behind the other screens, the hidden face's)
         if now.second != self.lastSecond:
             self.lastSecond = now.second
+            face = self.face if visible else self.hiddenFace
             if not self.quietTime(now):
-                self.play([(later, sound) for later, sound, kind in self.face.soundsAt(now) if self.kindOn(kind) and
+                self.play([(later, sound) for later, sound, kind in face.soundsAt(now) if self.kindOn(kind) and
                            (visible and self.soundOn if kind == "tick" else visible or CHIME_WHEN_HIDDEN)])
 
         ticks = pygame.time.get_ticks()

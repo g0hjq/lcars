@@ -12,8 +12,8 @@
 #   synth.py          makes the sounds the screens play from tones and noise
 #   fonts.py          the fonts every screen draws its text in (the font files are in fonts/)
 #
-#   RIGHT arrow key, or the NEXT button, for the next screen; LEFT arrow key (or M), or the
-#   SOUND button, to set the volume of the screen shown: low, medium, high or off (see gpio_buttons.py).
+#   RIGHT arrow key, or the NEXT button, for the next screen (each clock face is one); LEFT arrow
+#   key (or M), or the SOUND button, to set the volume of the screen shown (see gpio_buttons.py).
 #   ESC or Q to quit.
 
 import pygame

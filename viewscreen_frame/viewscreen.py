@@ -56,6 +56,8 @@ from settings import (
     VIEWSCREEN_CHIRP_SECONDS as CHIRP_SECONDS,
     VIEWSCREEN_CLOCK as CLOCK,
     VIEWSCREEN_HOURS_24 as HOURS_24,
+    VIEWSCREEN_VOLUMES as VOLUMES,
+    VIEWSCREEN_VOLUME_START as VOLUME_START,
 )
 
 VIEW = pygame.Rect(VIEW)        # (left, top, width, height) in settings.py
@@ -429,6 +431,8 @@ class ViewscreenScreen(scr.Screen):
 
     name = "VIEWSCREEN"
     hasSound = True
+    volumes = VOLUMES               # the levels the SOUND button goes round (settings.py)
+    volumeStart = VOLUME_START
 
     def soundList(self):
         return [(s, 1.0) for s in (self.sounds or {}).values()]

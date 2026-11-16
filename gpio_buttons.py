@@ -1,27 +1,31 @@
 """
 gpio_buttons.py
 
-Three (or four) push buttons on the Raspberry Pi's GPIO pins. Each one is wired between its pin and
-a ground (GND) pin: the Pi's own pull-up resistor holds the pin high, and pressing the
-button pulls it low. No resistors are needed.
+Two push buttons on the Raspberry Pi's GPIO pins (and two more, if you like). Each one is
+wired between its pin and a ground (GND) pin: the Pi's own pull-up resistor holds the pin high,
+and pressing the button pulls it low. No resistors are needed.
 
-    SOUND_PIN     GPIO22  (physical pin 15)   the volume of the screen shown: low, medium, high, off;
-                                              held down for HOLD_SECONDS, passed on to the screen
-                                              shown (the clock turns its chimes on or off)
-    NEXT_PIN      GPIO17  (physical pin 11)   next screen, going round them all
-    OK_PIN        GPIO27  (physical pin 13)   pressed briefly, or held down for HOLD_SECONDS:
-                                              passed on to the screen shown (the DeviantArt
-                                              frame moves on to the next picture, or deletes
-                                              the one it is showing)
+    SOUND_PIN     GPIO22  (physical pin 15)   button 1. Pressed briefly: the volume of the screen
+                                              shown (on the clock, of the ticks: low, medium,
+                                              high, max, off). Held down for HOLD_SECONDS:
+                                              passed on to the screen shown (the clock turns its
+                                              chimes on or off)
+    NEXT_PIN      GPIO17  (physical pin 11)   button 2. Pressed briefly: the next screen, going
+                                              round them all (each clock face is one). Held down:
+                                              passed on to the screen shown as OK_PRESSED (the
+                                              next picture in the frame, the clock's chime, the
+                                              fish fed, a warp jump...)
+    OK_PIN        GPIO27  (physical pin 13)   optional (None if there isn't one): pressed briefly
+                                              or held down, passed on to the screen shown (held,
+                                              the DeviantArt frame deletes the picture shown)
     TIME_PIN      GPIO23  (physical pin 16)   optional: pressed briefly, the city clock shows the
                                               city an hour later; held down, back to now
     ground        GND     (physical pin 9, 14 or 20)
 
-A press of the NEXT button posts screens.NEXT_SCREEN, which the main loop handles just
-like the right arrow key. The SOUND and OK buttons can be pressed briefly or held down, so
-they post their event when they are let go: screens.TOGGLE_SOUND (as the left arrow key
-does) or screens.OK_PRESSED. Holding one down posts screens.SOUND_HELD or screens.OK_HELD
-(and nothing more when it is let go).
+Each button can be pressed briefly or held down, so it posts its event when it is let go:
+screens.TOGGLE_SOUND (as the left arrow key does), screens.NEXT_SCREEN (as the right arrow
+key does) or screens.OK_PRESSED. Holding one down posts its held event at once (SOUND_HELD,
+OK_PRESSED for button 2, OK_HELD or TIME_HELD), and nothing more when it is let go.
 
 Uses gpiozero, which is already on Raspberry Pi OS (on a Pi 5 it works through lgpio:
 sudo apt install python3-gpiozero python3-lgpio if it isn't). On a PC, or if the
@@ -89,8 +93,9 @@ def startButtons():
 
     # (pin, the event when pressed, and the event when held down: None if it can't be held)
     pins = [(SOUND_PIN, scr.TOGGLE_SOUND, scr.SOUND_HELD),
-            (NEXT_PIN, scr.NEXT_SCREEN, None),
-            (OK_PIN, scr.OK_PRESSED, scr.OK_HELD)]
+            (NEXT_PIN, scr.NEXT_SCREEN, scr.OK_PRESSED)]
+    if OK_PIN is not None:
+        pins.append((OK_PIN, scr.OK_PRESSED, scr.OK_HELD))
     if TIME_PIN is not None:
         pins.append((TIME_PIN, scr.TIME_PRESSED, scr.TIME_HELD))
     for pin, eventType, heldType in pins:

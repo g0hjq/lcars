@@ -12,4 +12,5 @@ lcars_frame/token.json
 deviantart_frame/deviantart_choices.txt
 deviantart_frame/pictures/
 .cache.sqlite
+sound_state.json
 .lgd-*

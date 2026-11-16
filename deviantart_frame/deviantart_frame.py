@@ -339,8 +339,9 @@ class DeviantArtFrameScreen(scr.Screen):
         self.shownAt = time.time()
 
 
-    # Pressing the OK button briefly (or Enter or the space bar on a keyboard) moves on to the
-    # next picture. Holding it down (or pressing Delete) deletes the picture being shown.
+    # Holding the NEXT button down (or Enter or the space bar on a keyboard) moves on to the
+    # next picture. Holding the optional OK button down (or pressing Delete) deletes the
+    # picture being shown.
     def handleEvent(self, event):
         if event.type == scr.OK_HELD or (event.type == pygame.KEYDOWN and event.key == pygame.K_DELETE):
             self.deleteCurrent()

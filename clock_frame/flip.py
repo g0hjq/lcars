@@ -288,7 +288,7 @@ class FlipFace(Face):
         self.cover = drawCover()
         big, small = flipFont(480), flipFont(160)
         self.flaps = [Flap(rect, big if i < 2 else small) for i, rect in enumerate(flapRects())]
-        self.clacks = [clack(seed, tickVolume * 1.4) for seed in (61, 62, 63)]
+        self.clacks = [clack(seed, tickVolume) for seed in (61, 62, 63)]
         self.animate = False
 
     def sounds(self):

@@ -54,6 +54,8 @@ from settings import (
     BIOMONITOR_GREEN as GREEN,
     BIOMONITOR_LAMP_COLOUR as LAMP_COLOUR,
     BIOMONITOR_GAMMA as GAMMA,
+    BIOMONITOR_VOLUMES as VOLUMES,
+    BIOMONITOR_VOLUME_START as VOLUME_START,
 )
 
 DIAL_BOTTOM = DIAL_TOP + DIAL_HEIGHT
@@ -575,6 +577,8 @@ class BiomonitorScreen(scr.Screen):
 
     name = "BIOMONITOR"
     hasSound = True
+    volumes = VOLUMES               # the levels the SOUND button goes round (settings.py)
+    volumeStart = VOLUME_START
 
     def soundList(self):
         return [(self.heartbeat, 1.0)]
