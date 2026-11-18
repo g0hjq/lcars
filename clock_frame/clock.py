@@ -1,7 +1,7 @@
 """
 clock.py
 
-A screen with a big clock on it, in one of seven faces. Each face is a screen of its own as far
+A screen with a big clock on it, in one of eight faces. Each face is a screen of its own as far
 as the NEXT button (or the right arrow key) goes: it goes through them in turn, and on from the
 last to the next screen.
 
@@ -15,6 +15,9 @@ last to the next screen.
   FLIP       a 1970s flip clock, whose cards fall over with a clack (flip.py)
   CUCKOO     a Black Forest cuckoo clock with a swinging pendulum, whose cuckoo comes out to
              call the hours, and once at half past (cuckoo.py)
+  ASTRO      an astronomical clock among gold scrollwork: the time, the moon's phase, and the sun
+             and the moon in the zodiac, with clockwork turning behind; a carillon at the
+             quarters and a bell for the hour (astro.py)
   CITY       a made-up city across the street, under the real sky: the sun, the moon and the
              stars where they are now, lights coming on in the windows as it gets dark, cars,
              people, clouds and birds going by, and a distant bell for the hours (city.py)
@@ -53,6 +56,7 @@ from .deco import DecoFace
 from .nixie import NixieFace
 from .flip import FlipFace
 from .cuckoo import CuckooFace
+from .astro import AstroFace
 from .city import CityFace
 
 ##==================================================================
@@ -87,7 +91,7 @@ def minutesOf(setting):
 QUIET_FROM, QUIET_UNTIL = minutesOf(QUIET_FROM), minutesOf(QUIET_UNTIL)
 
 # The faces, by name
-FACE_CLASSES = {face.name: face for face in (BrassFace, RailwayFace, DecoFace, NixieFace, FlipFace, CuckooFace, CityFace)}
+FACE_CLASSES = {face.name: face for face in (BrassFace, RailwayFace, DecoFace, NixieFace, FlipFace, CuckooFace, AstroFace, CityFace)}
 
 
 class ClockScreen(scr.Screen):
@@ -195,12 +199,16 @@ class ClockScreen(scr.Screen):
         if isinstance(state.get("chimes"), bool):
             self.chimesOn = state["chimes"]
 
-    # The program can start at one of its faces (SCREEN_START)
+    # The program can start at one of its faces (SCREEN_START). A face not drawn yet is drawn
+    # only once its name has been shown (see update), so its name is shown here too, as when
+    # NEXT changes to it: without it the screen stayed black.
     def showPage(self, name):
         names = [face.name for face in self.faces]
         if name not in names:
             return False
         self.index = names.index(name)
+        if self.face not in self.built:
+            self.showNotice(f"{self.face.name}   {self.name}")
         return True
 
     # The NEXT button goes through the faces, then on to the next screen after the last

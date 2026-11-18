@@ -5,10 +5,9 @@
 #   lcars_frame/      the LCARS screen, and everything it uses
 #   deviantart_frame/ the DeviantArt picture frame, its daily downloads and its pictures
 #   biomonitor_frame/ the sickbay biomonitor dials
-#   clock_frame/      a clock with seven faces (brass, railway, deco, Nixie, flip, cuckoo, city) that chimes
+#   clock_frame/      a clock with eight faces (brass, railway, deco, Nixie, flip, cuckoo, astro, city) that chimes
 #   departures_frame/ a split-flap board of the aircraft overhead
 #   aquarium_frame/   a fish tank
-#   viewscreen_frame/ the view from the bridge, with warp jumps to new planets
 #   synth.py          makes the sounds the screens play from tones and noise
 #   fonts.py          the fonts every screen draws its text in (the font files are in fonts/)
 #
@@ -26,7 +25,6 @@ from biomonitor_frame.biomonitor import BiomonitorScreen
 from clock_frame.clock import ClockScreen
 from departures_frame.departures import DeparturesScreen
 from aquarium_frame.aquarium import AquariumScreen
-from viewscreen_frame.viewscreen import ViewscreenScreen
 
 
 # Its settings are in settings.py (next to lcars.py)
@@ -53,7 +51,6 @@ def main():
         BiomonitorScreen(),
         ClockScreen(),
         AquariumScreen(),
-        ViewscreenScreen(),
     ])
     switcher.start()
     buttons = gb.startButtons()

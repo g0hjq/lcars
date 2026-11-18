@@ -24,9 +24,9 @@ Every setting of the program, in one place, a section for each part of it:
     CLOCK: NIXIE FACE                               NIXIE_...
     CLOCK: FLIP FACE                                FLIP_...
     CLOCK: CUCKOO FACE                              CUCKOO_...
+    CLOCK: ASTRO FACE                               ASTRO_...
     CLOCK: CITY FACE                                CITY_...
     AQUARIUM                                        AQUARIUM_...
-    VIEWSCREEN                                      VIEWSCREEN_...
     YOUR OWN SETTINGS                               (from my_settings.py, at the end)
 
 Each setting's name starts with its section's, so search for, say, "AQUARIUM_" to find
@@ -519,7 +519,7 @@ BIOMONITOR_GAMMA = 3.5
 
 # The faces, in the order the NEXT button goes through them, each like a screen of its own.
 # The first is the one shown when the clock comes round. Leave out any you don't want.
-CLOCK_FACES = ["BRASS", "RAILWAY", "DECO", "NIXIE", "FLIP", "CUCKOO", "CITY"]
+CLOCK_FACES = ["BRASS", "RAILWAY", "DECO", "NIXIE", "FLIP", "CUCKOO", "ASTRO", "CITY"]
 
 # --- Sound ----------------------------------------------------------
 
@@ -793,6 +793,41 @@ CUCKOO_TEXT_COLOUR = (236, 214, 170)    # the notice in the corner at night
 
 
 ##==================================================================
+## CLOCK: ASTRO FACE (clock_frame/astro.py)
+##==================================================================
+
+# --- What it does ---------------------------------------------------
+
+ASTRO_STRIKE_HOURS = True           # after the carillon's tune on the hour, strike the hour on a bell
+ASTRO_WHEEL_SPEED = 0.25            # degrees the big wheel behind the dials turns at each tick (the others
+                                    # turn faster or slower, as their teeth make them)
+
+# --- Where the dials are --------------------------------------------
+
+ASTRO_TIME_CENTRE = (1290, 800)     # the time (Roman numerals)...
+ASTRO_MOON_CENTRE = (1290, 272)     # ...the moon's phase...
+ASTRO_ZODIAC_CENTRE = (610, 535)    # ...and the zodiac, with the sun and the moon in their signs
+ASTRO_RING_OUTER = 238              # the outside of each dial's ring...
+ASTRO_RING_INNER = 168              # ...and its inside, through which the wheels can be seen
+
+# --- Colours --------------------------------------------------------
+
+ASTRO_PAPER = (240, 238, 232)       # the panel
+ASTRO_GOLD = (240, 214, 112)        # the scrollwork...
+ASTRO_GOLD_DARK = (206, 164, 34)    # ...its leaves...
+ASTRO_OUTLINE = (92, 72, 24)        # ...and the line round it
+ASTRO_WHEELS = (150, 150, 156, 120) # the wheels behind (red, green, blue, and how solid, 0 to 255)
+ASTRO_ZODIAC_BLUE = (28, 104, 196)  # the zodiac's ring...
+ASTRO_ZODIAC_SIGNS = (238, 196, 60) # ...and its signs
+ASTRO_MOON_BLUE = (120, 172, 214)   # the moon dial's ring...
+ASTRO_MOON_DARK = (46, 58, 84)      # ...the dark of each moon...
+ASTRO_MOON_LIGHT = (238, 242, 246)  # ...and the light
+ASTRO_CREAM = (242, 234, 196)       # the time's ring...
+ASTRO_INK = (66, 60, 46)            # ...its numerals and lines
+ASTRO_HAND = (58, 64, 76)           # the hands
+
+
+##==================================================================
 ## CLOCK: CITY FACE (clock_frame/city.py)
 #
 # The sky follows the real sun and moon for WEATHER_LAT and WEATHER_LON (in my_settings.py).
@@ -899,43 +934,6 @@ AQUARIUM_CLOCK_LEFT = 64                 # its left edge...
 AQUARIUM_CLOCK_TOP = 60                  # ...and its top
 AQUARIUM_CLOCK_COLOUR = (236, 248, 255)  # (dimmer at night)
 AQUARIUM_HOURS_24 = True                 # False: 1 to 12
-
-
-##==================================================================
-## VIEWSCREEN (viewscreen_frame/viewscreen.py)
-#
-# The bridge's main viewscreen, its stars, and its jumps to warp.
-##==================================================================
-
-VIEWSCREEN_SOUND = True
-VIEWSCREEN_SOUND_VOLUME = 0.5              # 0 to 1: MAX
-VIEWSCREEN_VOLUMES = [("OFF", 0.0), ("LOW", 0.125), ("MEDIUM", 0.25), ("HIGH", 0.5), ("MAX", 1.0)]    # the levels for the SOUND button: (name, how loud, compared with MAX)
-VIEWSCREEN_VOLUME_START = "MAX"            # the one it starts at
-VIEWSCREEN_AUTO_WARP_MINUTES = (3, 7)      # at impulse, it goes to warp by itself after between these many minutes (None: only with OK)
-VIEWSCREEN_WARP_SECONDS = (12, 30)         # and stays at warp for between these many seconds
-
-VIEWSCREEN_VIEW = (150, 64, 1620, 800)     # the screen itself, inside its frame
-VIEWSCREEN_CORNER = 46                     # how round its corners are
-VIEWSCREEN_BEZEL = 30                      # how wide the metal frame round it is
-
-VIEWSCREEN_STARS = 650
-VIEWSCREEN_FOCAL = 640                     # how far the stars are spread: bigger looks more zoomed in
-VIEWSCREEN_IMPULSE_SPEED = 0.025           # how fast the stars come towards you, in their units a second...
-VIEWSCREEN_WARP_SPEED = 2.2                # ...and at warp
-VIEWSCREEN_ENGAGE_SECONDS = 1.6            # the stars stretch for this long before the jump to warp
-VIEWSCREEN_DROP_SECONDS = 1.1              # and slow for this long when dropping out of warp
-
-VIEWSCREEN_ORANGE = (255, 153, 0)
-VIEWSCREEN_PEACH = (255, 160, 90)
-VIEWSCREEN_LILAC = (204, 153, 255)
-VIEWSCREEN_ICE_BLUE = (153, 204, 255)
-VIEWSCREEN_BUTTERSCOTCH = (255, 204, 102)
-VIEWSCREEN_BLUE = (132, 132, 255)
-VIEWSCREEN_AMBER_LIGHT = (255, 170, 60)    # the running lights at impulse...
-VIEWSCREEN_BLUE_LIGHT = (110, 175, 255)    # ...and at warp
-VIEWSCREEN_CHIRP_SECONDS = (5, 16)         # the consoles chirp every so often, between these many seconds apart
-VIEWSCREEN_CLOCK = True                    # the time, on the console under the screen
-VIEWSCREEN_HOURS_24 = True                 # False: 1 to 12
 
 
 ##==================================================================

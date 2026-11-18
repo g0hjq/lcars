@@ -1,7 +1,7 @@
 # LCARS display
 
 A Star Trek LCARS-style display for a Raspberry Pi, written in Python with pygame. It fills
-a 1920×1080 screen and shows one of seven screens at a time, changed with a push button on
+a 1920×1080 screen and shows one of six screens at a time, changed with a push button on
 the Pi's GPIO pins (another sets the volume of each screen) or the arrow keys. Each of the
 clock's faces counts as a screen of its own. It starts on the city clock (`SCREEN_START` in
 `settings.py` picks another screen or face):
@@ -16,7 +16,7 @@ clock's faces counts as a screen of its own. It starts on the city clock (`SCREE
 - **Biomonitor**: the sickbay biomonitor, with a row of dials whose pointers drift around
   their normal ranges, and lamps that flash with the breathing and the heartbeat (which you
   can hear).
-- **Clock**: a big clock, with seven faces that the NEXT button goes through, one after another:
+- **Clock**: a big clock, with eight faces that the NEXT button goes through, one after another:
   - **Brass**: an old brass clock with Roman numerals, blued steel hands, a moon-phase window
     and windows for the day, the date and the month. It ticks, chimes the Westminster Quarters
     and strikes the hour.
@@ -35,6 +35,13 @@ clock's faces counts as a screen of its own. It starts on the city clock (`SCREE
     (so the underside of the roof and the top of the base show), with a swinging pendulum and
     two pine-cone weights that go down through the day. On the hour the doors under the roof
     open and the cuckoo comes out to call the hour; at half past it calls once.
+  - **Astro**: an astronomical clock on a pale panel in a gold border, among great gold
+    scrolls with leaves and bell flowers, with grey clockwork behind its three dials, seen through their open middles. The cream dial tells
+    the time in Roman numerals; the pale blue one shows the moon's phase, its hand pointing to
+    how far through its month the moon is; and on the deep blue zodiac the sun and the moon
+    each go round on a hand of their own, in the sign each is in. The wheels jump on at each
+    second, with a tick. A little carillon plays a phrase at the quarters (a bar more at each),
+    and a bell strikes the hour.
   - **City**: a made-up city across a street, with the time in the top right corner. A new
     city is made each night at 3am (`CITY_NEW_CITY_HOUR`).
     - The sky follows the real sun and moon where you are (`WEATHER_LAT` and `WEATHER_LON`):
@@ -67,7 +74,7 @@ clock's faces counts as a screen of its own. It starts on the city clock (`SCREE
   heard. Each face is drawn the first time it is shown, which takes a few seconds: meanwhile
   the screen is blank, with the face's name (DECO CLOCK, say). Its settings (which faces, the sound, the quiet hours, and each
   face's colours and sizes) are the `CLOCK_`, `BRASS_`, `RAILWAY_`, `DECO_`, `NIXIE_`,
-  `FLIP_`, `CUCKOO_` and `CITY_` ones in `settings.py`.
+  `FLIP_`, `CUCKOO_`, `ASTRO_` and `CITY_` ones in `settings.py`.
 - **Departures board**: an old split-flap board, like a station's or an airport's, listing the
   aircraft your receiver can hear: flight, from, to, distance, height and what it is doing.
   It is brought up to date every 10 seconds (`DEPARTURES_UPDATE_SECONDS` in `settings.py`),
@@ -78,12 +85,6 @@ clock's faces counts as a screen of its own. It starts on the city clock (`SCREE
   into the haze at the back. The time is at the top left (`AQUARIUM_CLOCK_SIZE`). Holding
   the NEXT button down feeds the fish. At night (the clock's quiet hours) the light goes down and the fish
   rest.
-- **Viewscreen**: the bridge's main viewscreen, set in its metal frame in the bulkhead, with
-  running lights chasing round it and a console below. At impulse there is a planet or nebula
-  ahead; holding the NEXT button down (or a few minutes' wait) powers up and goes to warp, the lights turning
-  blue, and it drops out later somewhere new: each planet and nebula is made up by the
-  program, with a made-up name. The bridge hums, and the consoles chirp now and then. The
-  time is on the console (`VIEWSCREEN_CLOCK`).
 
 The sounds are all made by the program as it starts (see `synth.py`), so there are no sound
 files apart from the biomonitor's heartbeat. How loud each one is, from 0 to 1, is set in
@@ -101,7 +102,6 @@ it turns down only the ticks (and holding it down turns the chimes off or on).
 | Clock chimes | `CLOCK_CHIME_VOLUME` (1.0, the most), whatever the SOUND button is set to; the Nixie pips are `NIXIE_PIP_LOUDNESS` (0.5, 6 dB quieter) of that |
 | Clock ticks (and the flip clock's clacks) | `CLOCK_TICK_LOUDNESS` (0.25) of the chimes' loudness at MAX, 12 dB quieter; the SOUND button turns them down from there (`CLOCK_TICK_VOLUMES`) |
 | Aquarium bubbles | `AQUARIUM_SOUND_VOLUME` (0.075) |
-| Viewscreen hum, chirps and warp | `VIEWSCREEN_SOUND_VOLUME` (0.5) |
 
 Each screen is in its own folder, and new ones can be added (see [Adding a screen](#adding-a-screen)).
 
@@ -136,6 +136,9 @@ and the month below the middle.*
 ![The cuckoo clock](docs/clock_cuckoo.jpg)
 *The cuckoo face, whose cuckoo comes out of the doors under the roof to call the hours.*
 
+![The astronomical clock](docs/clock_astro.jpg)
+*The astro face: the time, the moon's phase, and the sun and the moon in the zodiac.*
+
 ![The city clock at dusk](docs/clock_city.jpg)
 *The city face at dusk, the lights coming on and the traffic's lamps lit.*
 
@@ -148,9 +151,6 @@ filled in for flights to or from your own airport.*
 
 ![The aquarium](docs/aquarium.jpg)
 *The aquarium.*
-
-![The viewscreen](docs/viewscreen.jpg)
-*The viewscreen at impulse, near one of its made-up planets.*
 
 
 ## What you need
@@ -300,7 +300,6 @@ What holding NEXT down does on each screen:
 - DeviantArt frame: the next picture
 - Clock: plays the face's last chime again (the cuckoo comes out; the flip clock clacks over)
 - Aquarium: feeds the fish
-- Viewscreen: goes to warp, or drops out of it
 - Biomonitor and departures board: nothing
 
 ## Files
@@ -320,11 +319,10 @@ restart_service.sh       restart the service, to pick up changes
 lcars_frame/             the LCARS screen, and the weather, calendar and aircraft it shows
 deviantart_frame/        the DeviantArt picture frame, and its downloader
 biomonitor_frame/        the biomonitor screen, with its pointer, font and heartbeat
-clock_frame/             the clock screen (clock.py), its seven faces, what they share
+clock_frame/             the clock screen (clock.py), its eight faces, what they share
                          (common.py), and the city face's 3D vehicles (vehicles.py)
 departures_frame/        the split-flap departures board
 aquarium_frame/          the fish tank
-viewscreen_frame/        the bridge viewscreen, its warp jumps and its made-up planets
 synth.py                 makes sounds from tones and noise, for the screens
 ```
 
